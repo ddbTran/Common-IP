@@ -68,7 +68,6 @@ check "verilator" "verilator"   --version
 check "surfer"    "surfer"      --version
 check "yosys"     "yosys"       -V
 check "yosys-abc" "yosys-abc"   -c "version"
-check "abc"       "abc"         -c "version"
 check "sta"       "sta"         -version
 
 echo

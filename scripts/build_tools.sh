@@ -7,8 +7,7 @@
 #   01  Verilator
 #   02  Surfer
 #   03  Yosys
-#   04  ABC
-#   05  OpenSTA (+ CUDD)
+#   04  OpenSTA (+ CUDD)
 #
 # The script is idempotent: any tool already built at its pinned version
 # is skipped. It stops immediately on the first failure.
@@ -125,7 +124,10 @@ want_stage() {
 REQUIRED_DEV_PACKAGES=(
     git gcc g++ make cmake autoconf automake libtool pkg-config
     bison flex tcl-dev swig curl python3
-    help2man libfl-dev libfl2 zlib1g-dev perl
+    help2man libfl-dev libfl2 zlib1g-dev perl googletest libgmock-dev
+    gawk git make python3 lld bison clang flex
+        libffi-dev libfl-dev libreadline-dev pkg-config tcl-dev zlib1g-dev
+        graphviz xdot
 )
 
 stage_dev_deps() {
@@ -230,61 +232,39 @@ build_surfer() {
  
 build_yosys() {
     local tool=yosys
+
     if is_built "${tool}" "${YOSYS_VERSION}"; then
         log "==> 03 Yosys (already built, skipping)"
         return 0
     fi
+
     log "==> 03 Yosys"
     CURRENT_STAGE="03-yosys"
- 
-    # set_env.sh: YOSYS_HOME="${TOOL_HOME}/yosys", PATH gets
-    # "${YOSYS_HOME}/install/bin" (this is also where yosys-abc ends up)
+
     clone_at "${YOSYS_REPO}" "${YOSYS_HOME}" "${YOSYS_VERSION}"
- 
+
     (
         cd "${YOSYS_HOME}"
-        # Write Makefile.conf directly instead of `make config-gcc`.
-        # That target only ever did this one line — writing it ourselves
-        # avoids depending on the target still existing at this exact
-        # pinned commit (some Yosys revisions don't define it).
-        echo "CONFIG := gcc" > Makefile.conf
-        make -j"${JOBS}" PREFIX="${YOSYS_HOME}/install"
-        make install PREFIX="${YOSYS_HOME}/install"
+
+        cmake -B build . \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${YOSYS_HOME}/install"
+
+        cmake --build build \
+            --config Release \
+            --parallel "${JOBS}"
+
+        cmake --install build
     )
- 
+
+    [[ -x "${YOSYS_HOME}/install/bin/yosys" ]] || \
+        die "expected binary not found at ${YOSYS_HOME}/install/bin/yosys after build"
+
     mark_built "${tool}" "${YOSYS_VERSION}"
 }
 
 # ---------------------------------------------------------------------------
-# 04 - ABC (standalone, distinct from the ABC bundled inside Yosys)
-# ---------------------------------------------------------------------------
-
-build_abc() {
-    local tool=abc
-    if is_built "${tool}" "${ABC_VERSION}"; then
-        log "==> 04 ABC (already built, skipping)"
-        return 0
-    fi
-    log "==> 04 ABC"
-    CURRENT_STAGE="04-abc"
-
-    # set_env.sh: ABC_HOME="${TOOL_HOME}/abc" is added to PATH *directly*
-    # (no bin/ subfolder) -> the compiled "abc" binary must land right at
-    # the root of this checkout. No separate install step needed.
-    clone_at "${ABC_REPO}" "${ABC_HOME}" "${ABC_VERSION}"
-
-    (
-        cd "${ABC_HOME}"
-        make -j"${JOBS}"
-    )
-
-    [[ -x "${ABC_HOME}/abc" ]] || die "expected binary not found at ${ABC_HOME}/abc after build"
-
-    mark_built "${tool}" "${ABC_VERSION}"
-}
-
-# ---------------------------------------------------------------------------
-# 05 - OpenSTA (with CUDD as a dependency)
+# 04 - OpenSTA (with CUDD as a dependency)
 # ---------------------------------------------------------------------------
 
 build_cudd() {
@@ -316,11 +296,11 @@ build_cudd() {
 build_opensta() {
     local tool=opensta
     if is_built "${tool}" "${OPENSTA_VERSION}"; then
-        log "==> 05 OpenSTA (already built, skipping)"
+        log "==> 04 OpenSTA (already built, skipping)"
         return 0
     fi
-    log "==> 05 OpenSTA"
-    CURRENT_STAGE="05-opensta"
+    log "==> 04 OpenSTA"
+    CURRENT_STAGE="04-opensta"
 
     build_cudd
 
@@ -352,8 +332,7 @@ main() {
     want_stage "verilator" && run_step "01-verilator" build_verilator
     want_stage "surfer"    && run_step "02-surfer"    build_surfer
     want_stage "yosys"     && run_step "03-yosys"     build_yosys
-    want_stage "abc"       && run_step "04-abc"       build_abc
-    want_stage "opensta"   && run_step "05-opensta"   build_opensta
+    want_stage "opensta"   && run_step "04-opensta"   build_opensta
 
     CURRENT_STAGE="done"
     log "Toolchain build complete."
