@@ -60,7 +60,7 @@ mkdir -p "${OUT_DIR}"
 echo "==> Building '${CELL}' testbench with Verilator"
 (
   cd "${SIM_DIR}"
-  verilator \
+  ${VERILATOR_HOME}/bin/verilator \
     --binary \
     -Wall \
     --timing \
