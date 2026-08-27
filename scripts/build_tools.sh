@@ -227,7 +227,7 @@ build_surfer() {
 # ---------------------------------------------------------------------------
 # 03 - Yosys
 # ---------------------------------------------------------------------------
-
+ 
 build_yosys() {
     local tool=yosys
     if is_built "${tool}" "${YOSYS_VERSION}"; then
@@ -236,18 +236,22 @@ build_yosys() {
     fi
     log "==> 03 Yosys"
     CURRENT_STAGE="03-yosys"
-
+ 
     # set_env.sh: YOSYS_HOME="${TOOL_HOME}/yosys", PATH gets
     # "${YOSYS_HOME}/install/bin" (this is also where yosys-abc ends up)
     clone_at "${YOSYS_REPO}" "${YOSYS_HOME}" "${YOSYS_VERSION}"
-
+ 
     (
         cd "${YOSYS_HOME}"
-        make config-gcc
+        # Write Makefile.conf directly instead of `make config-gcc`.
+        # That target only ever did this one line — writing it ourselves
+        # avoids depending on the target still existing at this exact
+        # pinned commit (some Yosys revisions don't define it).
+        echo "CONFIG := gcc" > Makefile.conf
         make -j"${JOBS}" PREFIX="${YOSYS_HOME}/install"
         make install PREFIX="${YOSYS_HOME}/install"
     )
-
+ 
     mark_built "${tool}" "${YOSYS_VERSION}"
 }
 
