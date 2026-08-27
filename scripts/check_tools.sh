@@ -30,21 +30,11 @@ OVERALL_PASS=1
 # ---------------------------------------------------------------------------
 
 resolve_bin() {
-    local binary="$1" candidate
-    if command -v "${binary}" >/dev/null 2>&1; then
-        command -v "${binary}"
-        return 0
-    fi
-    for candidate in \
-        "${TOOL_HOME}/verilator/bin/${binary}" \
-        "${TOOL_HOME}/surfer/bin/${binary}" \
-        "${TOOL_HOME}/yosys/bin/${binary}" \
-        "${TOOL_HOME}/abc/bin/${binary}" \
-        "${TOOL_HOME}/opensta/bin/${binary}"
-    do
-        [[ -x "${candidate}" ]] && { echo "${candidate}"; return 0; }
-    done
-    return 1
+    local binary="$1"
+    # set_env.sh already prepends every tool's real install/bin (or build/)
+    # directory onto PATH, so trust PATH as the single source of truth
+    # instead of guessing locations here.
+    command -v "${binary}" 2>/dev/null
 }
 
 check() {

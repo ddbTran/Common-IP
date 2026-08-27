@@ -36,13 +36,19 @@ source "${COMMON_IPS_HOME}/scripts/tool_versions.sh"
 
 : "${TOOL_HOME:?TOOL_HOME must be set by set_env.sh}"
 
-SRC_HOME="${TOOL_HOME}/src"
+# Each tool is cloned and built directly inside its own TOOL_HOME
+# subdirectory (matching the *_HOME variables set_env.sh exports),
+# not in a separate shared src/ tree. Standalone tools install into
+# an "install/" subfolder of their own checkout; OpenSTA and ABC are
+# used straight from their build/checkout directory, matching the
+# exact paths set_env.sh prepends to PATH.
 STAMP_DIR="${TOOL_HOME}/.stamps"
 LOG_DIR="${TOOL_HOME}/.logs"
+DEPS_DIR="${TOOL_HOME}/.deps"          # build-time-only deps (CUDD), not on PATH
 JOBS="${JOBS:-$(nproc 2>/dev/null || echo 4)}"
 FORCE_REBUILD="${FORCE_REBUILD:-0}"
 
-mkdir -p "${SRC_HOME}" "${STAMP_DIR}" "${LOG_DIR}"
+mkdir -p "${TOOL_HOME}" "${STAMP_DIR}" "${LOG_DIR}" "${DEPS_DIR}"
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -92,7 +98,10 @@ run_step() {
     local name="$1"; shift
     CURRENT_STAGE="${name}"
     log "==> ${name}"
-    "$@" >"${LOG_DIR}/${name}.log" 2>&1
+    # `tee` so the log is visible live in the console (crucial for CI)
+    # AND saved to disk for later inspection. `pipefail` (set above)
+    # makes the pipeline's exit code reflect "$@", not tee.
+    "$@" 2>&1 | tee "${LOG_DIR}/${name}.log"
 }
 
 STAGE_FILTER=("$@")
@@ -116,6 +125,7 @@ want_stage() {
 REQUIRED_DEV_PACKAGES=(
     git gcc g++ make cmake autoconf automake libtool pkg-config
     bison flex tcl-dev swig curl python3
+    help2man libfl-dev libfl2 zlib1g-dev perl
 )
 
 stage_dev_deps() {
@@ -173,13 +183,14 @@ build_verilator() {
     log "==> 01 Verilator"
     CURRENT_STAGE="01-verilator"
 
-    local src="${SRC_HOME}/verilator"
-    clone_at "${VERILATOR_REPO}" "${src}" "${VERILATOR_VERSION}"
+    # set_env.sh: VERILATOR_HOME="${TOOL_HOME}/verilator", PATH gets
+    # "${VERILATOR_HOME}/install/bin" -> clone in place, install to ./install
+    clone_at "${VERILATOR_REPO}" "${VERILATOR_HOME}" "${VERILATOR_VERSION}"
 
     (
-        cd "${src}"
+        cd "${VERILATOR_HOME}"
         autoconf
-        ./configure --prefix="${TOOL_HOME}/verilator"
+        ./configure --prefix="${VERILATOR_HOME}/install"
         make -j"${JOBS}"
         make install
     )
@@ -200,13 +211,14 @@ build_surfer() {
     log "==> 02 Surfer"
     CURRENT_STAGE="02-surfer"
 
-    local src="${SRC_HOME}/surfer"
-    clone_at "${SURFER_REPO}" "${src}" "${SURFER_VERSION}"
+    # set_env.sh: SURFER_HOME="${TOOL_HOME}/surfer", PATH gets
+    # "${SURFER_HOME}/install/bin"
+    clone_at "${SURFER_REPO}" "${SURFER_HOME}" "${SURFER_VERSION}"
 
     (
-        cd "${src}"
+        cd "${SURFER_HOME}"
         cargo build --release
-        install -Dm755 target/release/surfer "${TOOL_HOME}/surfer/bin/surfer"
+        install -Dm755 target/release/surfer "${SURFER_HOME}/install/bin/surfer"
     )
 
     mark_built "${tool}" "${SURFER_VERSION}"
@@ -225,14 +237,15 @@ build_yosys() {
     log "==> 03 Yosys"
     CURRENT_STAGE="03-yosys"
 
-    local src="${SRC_HOME}/yosys"
-    clone_at "${YOSYS_REPO}" "${src}" "${YOSYS_VERSION}"
+    # set_env.sh: YOSYS_HOME="${TOOL_HOME}/yosys", PATH gets
+    # "${YOSYS_HOME}/install/bin" (this is also where yosys-abc ends up)
+    clone_at "${YOSYS_REPO}" "${YOSYS_HOME}" "${YOSYS_VERSION}"
 
     (
-        cd "${src}"
+        cd "${YOSYS_HOME}"
         make config-gcc
-        make -j"${JOBS}" PREFIX="${TOOL_HOME}/yosys"
-        make install PREFIX="${TOOL_HOME}/yosys"
+        make -j"${JOBS}" PREFIX="${YOSYS_HOME}/install"
+        make install PREFIX="${YOSYS_HOME}/install"
     )
 
     mark_built "${tool}" "${YOSYS_VERSION}"
@@ -251,14 +264,17 @@ build_abc() {
     log "==> 04 ABC"
     CURRENT_STAGE="04-abc"
 
-    local src="${SRC_HOME}/abc"
-    clone_at "${ABC_REPO}" "${src}" "${ABC_VERSION}"
+    # set_env.sh: ABC_HOME="${TOOL_HOME}/abc" is added to PATH *directly*
+    # (no bin/ subfolder) -> the compiled "abc" binary must land right at
+    # the root of this checkout. No separate install step needed.
+    clone_at "${ABC_REPO}" "${ABC_HOME}" "${ABC_VERSION}"
 
     (
-        cd "${src}"
+        cd "${ABC_HOME}"
         make -j"${JOBS}"
-        install -Dm755 abc "${TOOL_HOME}/abc/bin/abc"
     )
+
+    [[ -x "${ABC_HOME}/abc" ]] || die "expected binary not found at ${ABC_HOME}/abc after build"
 
     mark_built "${tool}" "${ABC_VERSION}"
 }
@@ -275,15 +291,17 @@ build_cudd() {
     fi
     log "    building CUDD dependency"
 
-    local src="${SRC_HOME}/cudd"
+    # CUDD is a build-time-only dependency of OpenSTA. set_env.sh does not
+    # put it on PATH, so it lives under TOOL_HOME/.deps, not TOOL_HOME/cudd.
+    local src="${DEPS_DIR}/cudd"
     mkdir -p "${src}"
-    curl -fsSL "${CUDD_URL}" -o "${SRC_HOME}/cudd-${CUDD_VERSION}.tar.gz"
-    tar -xzf "${SRC_HOME}/cudd-${CUDD_VERSION}.tar.gz" -C "${src}" --strip-components=1
+    curl -fsSL "${CUDD_URL}" -o "${DEPS_DIR}/cudd-${CUDD_VERSION}.tar.gz"
+    tar -xzf "${DEPS_DIR}/cudd-${CUDD_VERSION}.tar.gz" -C "${src}" --strip-components=1
 
     (
         cd "${src}"
         autoreconf -fi 2>/dev/null || true
-        ./configure --prefix="${TOOL_HOME}/cudd"
+        ./configure --prefix="${src}/install"
         make -j"${JOBS}"
         make install
     )
@@ -302,18 +320,19 @@ build_opensta() {
 
     build_cudd
 
-    local src="${SRC_HOME}/opensta"
-    clone_at "${OPENSTA_REPO}" "${src}" "${OPENSTA_VERSION}"
+    # set_env.sh: OPENSTA_HOME="${TOOL_HOME}/OpenSTA" (exact case matters
+    # on Linux), PATH gets "${OPENSTA_HOME}/build" -> the "sta" binary is
+    # used straight out of the cmake build directory; no "make install".
+    clone_at "${OPENSTA_REPO}" "${OPENSTA_HOME}" "${OPENSTA_VERSION}"
 
     (
-        cd "${src}"
+        cd "${OPENSTA_HOME}"
         mkdir -p build && cd build
-        cmake -DCMAKE_INSTALL_PREFIX="${TOOL_HOME}/opensta" \
-              -DCUDD_DIR="${TOOL_HOME}/cudd" \
-              ..
+        cmake -DCUDD_DIR="${DEPS_DIR}/cudd/install" ..
         make -j"${JOBS}"
-        make install
     )
+
+    [[ -x "${OPENSTA_HOME}/build/sta" ]] || die "expected binary not found at ${OPENSTA_HOME}/build/sta after build"
 
     mark_built "${tool}" "${OPENSTA_VERSION}"
 }
