@@ -7,8 +7,8 @@
 
 module sync_fifo #(
     // Configurable Parameters
-    parameter int unsigned DATA_WIDTH = 32, // Default Data Width
-    parameter int unsigned DEPTH      =  8, // Default Fifo Depth, should be >= 2
+    parameter int unsigned DATA_WIDTH =   32, // Default Data Width
+    parameter int unsigned DEPTH      =    8, // Default Fifo Depth, should be >= 2
     // Derived parameters
     localparam int unsigned PTR_WIDTH = $clog2(DEPTH),
     localparam int unsigned USG_WIDTH = $clog2(DEPTH+1)
@@ -70,8 +70,8 @@ module sync_fifo #(
     always_ff @(posedge clk_i or negedge rst_ni) begin
 	if (!rst_ni) begin
             write_ptr_q <= '0;
-	    read_ptr_q  <= '0;
-	    usage_cnt_q <= '0;
+            read_ptr_q  <= '0;
+            usage_cnt_q <= '0;
 	end else if (flush_i) begin
             write_ptr_q <= '0;
             read_ptr_q  <= '0;
