@@ -344,4 +344,9 @@ module tb_sync_fifo;
     end
   end
 
+  initial begin
+      $dumpfile("sync_fifo.fst");
+      $dumpvars(0, tb_sync_fifo);
+  end
+
 endmodule

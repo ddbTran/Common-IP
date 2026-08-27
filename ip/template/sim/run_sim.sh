@@ -10,8 +10,8 @@ set -euo pipefail
 #   IP_HOME="${SYNC_FIFO_HOME}"
 #   TOP_MODULE="tb_sync_fifo"
 
-IP_HOME="${SYNC_FIFO_HOME}"
-TOP_MODULE="tb_sync_fifo"
+IP_HOME=""
+TOP_MODULE=""
 
 
 # ============================================================

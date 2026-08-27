@@ -1,18 +1,29 @@
 #!/usr/bin/env bash
 
-# ---------------------------------------------------------------------------
+# ============================================================
+# Common IPs - Environment
+# ============================================================
+
+# ------------------------------------------------------------
 # Working directory
-# ---------------------------------------------------------------------------
+# ------------------------------------------------------------
+
 export COMMON_IPS_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# ---------------------------------------------------------------------------
-# IP
-# ---------------------------------------------------------------------------
-export SYNC_FIFO_HOME="${COMMON_IPS_HOME}/ip/sync_fifo"
 
-# ---------------------------------------------------------------------------
+# ------------------------------------------------------------
+# IP
+# ------------------------------------------------------------
+
+export IP_HOME="${COMMON_IPS_HOME}/ip"
+
+export SYNC_FIFO_HOME="${IP_HOME}/sync_fifo"
+
+
+# ------------------------------------------------------------
 # Tool
-# ---------------------------------------------------------------------------
+# ------------------------------------------------------------
+
 export TOOL_HOME="${COMMON_IPS_HOME}/tool"
 
 export YOSYS_HOME="${TOOL_HOME}/yosys"
@@ -22,15 +33,32 @@ export IVERILOG_HOME="${TOOL_HOME}/iverilog"
 export OPENSTA_HOME="${TOOL_HOME}/OpenSTA"
 export SURFER_HOME="${TOOL_HOME}/surfer"
 
-# ---------------------------------------------------------------------------
+
+# ------------------------------------------------------------
 # PATH
-# ---------------------------------------------------------------------------
-[ -d "${YOSYS_HOME}/install/bin" ]     && export PATH="${YOSYS_HOME}/install/bin:${PATH}"
-[ -d "${ABC_HOME}" ]                   && export PATH="${ABC_HOME}:${PATH}"
-[ -d "${VERILATOR_HOME}/install/bin" ] && export PATH="${VERILATOR_HOME}/install/bin:${PATH}"
-[ -d "${IVERILOG_HOME}/install/bin" ]  && export PATH="${IVERILOG_HOME}/install/bin:${PATH}"
-[ -d "${OPENSTA_HOME}/build" ]         && export PATH="${OPENSTA_HOME}/build:${PATH}"
-[ -d "${SURFER_HOME}/install/bin" ]    && export PATH="${SURFER_HOME}/install/bin:${PATH}"
+# ------------------------------------------------------------
+
+prepend_path()
+{
+    local dir="$1"
+
+    [[ -d "${dir}" ]] || return 0
+
+    case ":${PATH}:" in
+        *":${dir}:"*)
+            ;;
+        *)
+            export PATH="${dir}:${PATH}"
+            ;;
+    esac
+}
+
+prepend_path "${YOSYS_HOME}/install/bin"
+prepend_path "${ABC_HOME}"
+prepend_path "${VERILATOR_HOME}/install/bin"
+prepend_path "${IVERILOG_HOME}/install/bin"
+prepend_path "${OPENSTA_HOME}/build"
+prepend_path "${SURFER_HOME}/install/bin"
 
 # ---------------------------------------------------------------------------
 # Lib
