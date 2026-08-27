@@ -123,11 +123,13 @@ want_stage() {
 
 REQUIRED_DEV_PACKAGES=(
     git gcc g++ make cmake autoconf automake libtool pkg-config
-    bison flex tcl-dev swig curl python3
-    help2man libfl-dev libfl2 zlib1g-dev perl googletest libgmock-dev
-    gawk git make python3 lld bison clang flex
-        libffi-dev libfl-dev libreadline-dev pkg-config tcl-dev zlib1g-dev
-        graphviz xdot
+    bison flex libfl-dev
+    tcl-dev swig libffi-dev libreadline-dev zlib1g-dev
+    libeigen3-dev
+    curl python3 perl gawk
+    help2man googletest libgmock-dev
+    clang lld
+    graphviz xdot
 )
 
 stage_dev_deps() {
