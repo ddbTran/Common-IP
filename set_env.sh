@@ -60,6 +60,10 @@ prepend_path "${IVERILOG_HOME}/install/bin"
 prepend_path "${OPENSTA_HOME}/build"
 prepend_path "${SURFER_HOME}/install/bin"
 
+# Clear bash's cached command-path table so any tool rebuilt/reinstalled
+# since this shell started resolves to the new binary immediately.
+hash -r
+
 # ---------------------------------------------------------------------------
 # Lib
 # ---------------------------------------------------------------------------
