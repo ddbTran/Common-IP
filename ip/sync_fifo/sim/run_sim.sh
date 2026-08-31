@@ -34,6 +34,7 @@ fi
 # ============================================================
 
 mkdir -p "${IP_HOME}/sim/out"
+cd "$SYNC_FIFO_HOME/sim"
 
 verilator \
     --binary \
