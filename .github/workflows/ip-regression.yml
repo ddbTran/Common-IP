@@ -7,12 +7,6 @@ on:
     paths:
       - "ip/**"
 
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "ip/**"
-
   workflow_dispatch:
 
 jobs:
