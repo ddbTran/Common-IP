@@ -53,7 +53,7 @@ The following table defines the target IP set and its current implementation sta
 | `clk_div`         | Programmable clock divider                 | Planned | Planned | Planned |
 | `clk_mux`         | Clock source multiplexer                   | Planned | Planned | Planned |
 | `reset_handshake` | Reset sequencing and handshake logic       | Planned | Planned | Planned |
-| `sync`            | Generic clock-domain synchronizer          | Planned | Planned | Planned |
+| `synchrnozier`    | Generic clock-domain synchronizer          |   Done  |   N/A   |   N/A   |
 | `rst_sync`        | Reset synchronizer                         | Planned | Planned | Planned |
 | `2phase_hs`       | Two-phase clock-domain crossing handshake  | Planned | Planned | Planned |
 | `4phase_hs`       | Four-phase clock-domain crossing handshake | Planned | Planned | Planned |
