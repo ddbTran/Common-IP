@@ -2,145 +2,128 @@
 
 A reusable RTL IP repository for digital hardware design.
 
-The repository provides small, technology-independent building blocks commonly required in SoC, interconnect, and chiplet-oriented designs, together with a reproducible open-source verification and synthesis flow.
+## 1. Reason
 
-## Coverage
+### Repository
 
-The repository currently covers the following IP categories:
+This repository provides a collection of small, reusable, and technology-independent RTL IPs for common digital hardware design needs.
 
-```text
-common_ip/
-├── fifo/
-│   ├── sync_fifo/
-│   ├── gray_fifo/
-│   └── ring_fifo/
-│
-├── clock/
-│   ├── clk_div/
-│   └── clk_mux/
-│
-├── reset/
-│   └── reset_handshake/
-│
-├── cdc/
-│   ├── sync/
-│   ├── rst_sync/
-│   ├── 2phase_hs/
-│   ├── 4phase_hs/
-│   ├── pulse_sync/
-│   └── pulse_expand/
-│
-├── control/
-│   ├── rr_arbiter/
-│   ├── credit_counter/
-│   └── token_bucket/
-│
-└── interface/
-    └── apb_slave/
-```
+The IPs are intended to serve as building blocks for larger systems such as:
 
-The IP set is organized around common digital-design infrastructure:
+* SoCs
+* Interconnects
+* Chiplets
+* Communication and control subsystems
 
-* **FIFO** — buffering and clock-domain data movement
-* **Clock** — basic clock manipulation and selection
-* **Reset** — reset sequencing and coordination
-* **CDC** — clock-domain crossing primitives and handshakes
-* **Control** — arbitration, credit-based flow control, and rate limiting
-* **Interface** — standard peripheral/interface building blocks
+The repository also provides a reproducible local flow for RTL simulation, synthesis, and static timing analysis.
 
-The repository is intentionally composed of **small, composable IPs** rather than large subsystem-level blocks.
+### Aim
 
-## Current Status
-
-The repository is currently under active development.
-
-### IP status
-
-The repository structure defines the target IP coverage shown above. At the moment, the **synchronous FIFO (`sync_fifo`) is the currently integrated IP flow**, with the common environment already exposing:
-
-```bash
-SYNC_FIFO_HOME="${IP_HOME}/sync_fifo"
-```
-
-The remaining IP directories represent the planned/common-IP structure and are progressively implemented and validated.
-
-### Toolchain status
-
-A reproducible local toolchain is provided for:
-
-| Tool      | Purpose                                       |
-| --------- | --------------------------------------------- |
-| Verilator | RTL simulation and waveform generation        |
-| Surfer    | Waveform inspection                           |
-| Yosys     | RTL synthesis                                 |
-| ABC       | Logic optimization used by the synthesis flow |
-| OpenSTA   | Static timing analysis                        |
-| Nangate45 | Reference standard-cell timing library        |
-
-Tool versions are centrally pinned in:
+The aim is to build a consistent and reusable environment where each IP can be:
 
 ```text
-scripts/tool_versions.sh
+Designed
+   │
+   ▼
+Verified
+   │
+   ▼
+Synthesized
+   │
+   ▼
+Timing analyzed
 ```
 
-This avoids relying on whatever version happens to be installed on the host system.
+Each IP should be independently usable and should follow the same development and validation conventions.
 
-### Flow status
+### Goal
 
-The repository already provides:
+The long-term goal is to provide a reliable collection of common RTL building blocks that can be reused across hardware projects without rebuilding the same infrastructure from scratch.
 
-* environment setup
-* pinned tool versions
-* automated toolchain build
-* tool verification
-* Nangate45 library setup
-* reusable simulation template
-* reusable synthesis + STA template
-* per-IP output and log directories
+The repository is also intended to make IP development reproducible by keeping:
 
-The synthesis template runs:
+* RTL
+* simulation
+* synthesis
+* timing constraints
+* tool versions
+* library setup
 
-```text
-RTL
- │
- ▼
-Yosys
- │
- ▼
-Gate-level netlist
- │
- ▼
-OpenSTA
- │
- ▼
-Timing reports
-```
+under a consistent repository structure.
 
-and treats timing violations as a failed run.
+### Philosophy
 
-## Repository Layout
+The repository follows several principles:
+
+* **Small and focused** — each IP should solve one well-defined hardware problem.
+* **Reusable** — IPs should be parameterized where appropriate and independent of a specific system.
+* **Technology-independent RTL** — avoid technology-specific implementation in the RTL whenever possible.
+* **Self-contained** — each IP contains the information and scripts required to verify and synthesize it.
+* **Reproducible** — tool versions and technology libraries are explicitly managed.
+* **Consistent** — all IPs should follow the same basic RTL, simulation, and synthesis conventions.
+* **Fail-fast** — invalid configurations and failed verification steps should be detected as early as possible.
+* **Composable** — small IPs should be usable as building blocks for larger designs.
+
+---
+
+## 2. Status
+
+The following table defines the target IP set and its current implementation status.
+
+| Name              | Description                                |   RTL   |   SIM   |   SYN   |
+| ----------------- | ------------------------------------------ | :-----: | :-----: | :-----: |
+| `sync_fifo`       | Synchronous single-clock FIFO              |   Done  |   Done  |   Done  |
+| `gray_fifo`       | FIFO using Gray-coded pointers             | Planned | Planned | Planned |
+| `ring_fifo`       | Ring-buffer based FIFO                     | Planned | Planned | Planned |
+| `clk_div`         | Programmable clock divider                 | Planned | Planned | Planned |
+| `clk_mux`         | Clock source multiplexer                   | Planned | Planned | Planned |
+| `reset_handshake` | Reset sequencing and handshake logic       | Planned | Planned | Planned |
+| `sync`            | Generic clock-domain synchronizer          | Planned | Planned | Planned |
+| `rst_sync`        | Reset synchronizer                         | Planned | Planned | Planned |
+| `2phase_hs`       | Two-phase clock-domain crossing handshake  | Planned | Planned | Planned |
+| `4phase_hs`       | Four-phase clock-domain crossing handshake | Planned | Planned | Planned |
+| `pulse_sync`      | Pulse synchronization across clock domains | Planned | Planned | Planned |
+| `pulse_expand`    | Pulse expansion for CDC transfer           | Planned | Planned | Planned |
+| `rr_arbiter`      | Round-robin arbiter                        | Planned | Planned | Planned |
+| `credit_counter`  | Credit-based flow-control counter          | Planned | Planned | Planned |
+| `token_bucket`    | Token-bucket rate limiter                  | Planned | Planned | Planned |
+| `apb_slave`       | APB slave interface building block         | Planned | Planned | Planned |
+
+### Status Definition
+
+| Status    | Meaning                                          |
+| --------- | ------------------------------------------------ |
+| `Planned` | Target IP, implementation not started            |
+| `WIP`     | Currently under development                      |
+| `Done`    | RTL implemented and corresponding flow completed |
+| `N/A`     | Not applicable                                   |
+
+An IP is considered **Done** when its RTL, simulation, and synthesis flow have been implemented and validated.
+
+---
+
+## 3. How to Use
+
+### 3.1 Repository Structure
+
+The repository is organized into three main areas:
 
 ```text
 common_ips/
 │
 ├── ip/
-│   ├── sync_fifo/
+│   ├── <ip_name>/
+│   │   ├── doc/
 │   │   ├── rtl/
 │   │   ├── sim/
 │   │   └── syn/
 │   │
 │   └── template/
 │       ├── sim/
-│       │   └── run_sim.sh
-│       │
 │       └── syn/
-│           └── run_syn.sh
 │
 ├── libs/
 │   └── nangate45/
-│       ├── nangate45_fast.lib.gz
-│       ├── nangate45_typ.lib.gz
-│       └── nangate45_slow.lib.gz
 │
 ├── tool/
 │   ├── verilator/
@@ -160,287 +143,281 @@ common_ips/
 └── README.md
 ```
 
-The exact IP tree will grow as individual IPs are implemented.
-
-## Environment Setup
-
-From the repository root:
-
-```bash
-source set_env.sh
-```
-
-This initializes:
-
-```text
-COMMON_IPS_HOME
-IP_HOME
-TOOL_HOME
-LIB_HOME
-```
-
-and the individual tool/library variables.
-
-It also adds the locally built tools to `PATH`.
-
-For example:
-
-```bash
-yosys -V
-sta -version
-verilator --version
-```
-
-should resolve to the versions maintained by this repository.
-
-## Build the Toolchain
-
-The complete toolchain can be built with:
-
-```bash
-make build
-```
-
-This performs:
-
-1. Development dependency installation
-2. Verilator build
-3. Surfer build
-4. Yosys build
-5. OpenSTA build, including CUDD
-6. Tool verification
-7. Nangate45 library setup
-
-The build is designed to be **idempotent**. Already-built pinned versions are skipped.
-
-Individual stages can also be rebuilt:
-
-```bash
-./scripts/build_tools.sh verilator
-./scripts/build_tools.sh surfer
-./scripts/build_tools.sh yosys
-./scripts/build_tools.sh opensta
-```
-
-To force a rebuild:
-
-```bash
-FORCE_REBUILD=1 ./scripts/build_tools.sh yosys
-```
-
-Build logs and stamps are kept under:
-
-```text
-tool/.logs/
-tool/.stamps/
-```
-
-## Using an IP
-
-Each IP should be self-contained under:
+Each IP is isolated under:
 
 ```text
 ip/<ip_name>/
 ```
 
-A typical IP contains:
+and normally contains:
 
 ```text
 ip/<ip_name>/
+├── doc/
 ├── rtl/
 ├── sim/
 └── syn/
 ```
 
-### RTL
+The `template/` directory provides the starting point for new IP flows.
 
-RTL sources belong in:
+---
+
+### 3.2 Build
+
+Clone the repository:
+
+```bash
+git clone https://github.com/ddbTran/Common-IP
+cd Common-IP
+```
+
+Initialize the repository environment:
+
+```bash
+source set_env.sh
+```
+
+Build the complete local toolchain:
+
+```bash
+make build
+```
+
+The build includes:
+
+* Verilator
+* Surfer
+* Yosys
+* ABC
+* OpenSTA
+* required dependencies
+* Nangate45 reference libraries
+
+The build is designed to be idempotent, so already-built components are skipped.
+
+After building, verify the environment:
+
+```bash
+yosys -V
+verilator --version
+sta -version
+```
+
+The repository should resolve these tools from its local `tool/` directory rather than depending on system-installed versions.
+
+---
+
+### 3.3 Develop
+
+New IP development should start from the repository template.
+
+Create the IP directory:
+
+```bash
+mkdir -p ip/<ip_name>
+```
+
+The expected structure is:
+
+```text
+ip/<ip_name>/
+├── doc/
+│   └──IP_<ip_name>.pdf
+│
+├── rtl/
+│   ├── <ip_name>.sv
+│   └── filelist.f
+│
+├── sim/
+│   ├── tb_<ip_name>.sv
+│   ├── filelist_sim.f
+│   └── run_sim.sh
+│
+└── syn/
+    ├── filelist_syn.f
+    ├── constraints.sdc
+    └── run_syn.sh
+```
+
+The reusable templates can be copied:
+
+```bash
+cp -r ip/template/sim ip/<ip_name>/sim
+cp -r ip/template/syn ip/<ip_name>/syn
+```
+
+Then implement the following components.
+
+#### RTL
+
+Add the synthesizable RTL under:
 
 ```text
 ip/<ip_name>/rtl/
 ```
 
-A filelist should define the RTL compilation order.
-
-For example:
+and define the source order in:
 
 ```text
 ip/<ip_name>/rtl/filelist.f
 ```
 
-### Simulation
+The RTL should be:
 
-The simulation flow uses Verilator.
+* synthesizable
+* technology-independent
+* parameterized where appropriate
+* documented at the interface level
 
-The reusable template is:
+#### Simulation
 
-```text
-ip/template/sim/run_sim.sh
-```
-
-For a new IP, copy the simulation directory:
-
-```bash
-cp -r ip/template/sim ip/<ip_name>/sim
-```
-
-Then configure:
-
-```bash
-IP_HOME="${<IP_NAME>_HOME}"
-TOP_MODULE="<testbench_top>"
-```
-
-and provide:
+Add the testbench under:
 
 ```text
-ip/<ip_name>/sim/filelist_sim.f
+ip/<ip_name>/sim/
 ```
 
-After sourcing the environment:
-
-```bash
-source set_env.sh
-./ip/<ip_name>/sim/run_sim.sh
-```
-
-Simulation output is generated under:
+and define the simulation sources in:
 
 ```text
-ip/<ip_name>/sim/out/
+filelist_sim.f
 ```
 
-The Verilator flow enables FST waveform tracing, which can be inspected using Surfer.
+The simulation flow should use Verilator and should provide a clear pass/fail result.
 
-## Synthesis and STA
+Waveform tracing may be enabled for debugging and inspected using Surfer.
 
-The reusable synthesis template is:
+#### Synthesis
+
+Add the synthesis configuration under:
 
 ```text
-ip/template/syn/
-```
-
-For a new IP:
-
-```bash
-cp -r ip/template/syn ip/<ip_name>/syn
-```
-
-Configure the IP-specific top module and environment variable in:
-
-```text
-ip/<ip_name>/syn/run_syn.sh
-```
-
-For example:
-
-```bash
-SYN_TOP="sync_fifo"
-IP_HOME="${SYNC_FIFO_HOME}"
+ip/<ip_name>/syn/
 ```
 
 The synthesis filelist is:
 
 ```text
-ip/<ip_name>/syn/filelist_syn.f
+filelist_syn.f
 ```
 
 and timing constraints are specified in:
 
 ```text
-ip/<ip_name>/syn/constraints.sdc
+constraints.sdc
 ```
 
-Then run:
+The synthesis flow should produce a gate-level netlist and run timing analysis using the repository's Nangate45 reference library.
 
-```bash
-source set_env.sh
-./ip/<ip_name>/syn/run_syn.sh
-```
+---
 
-The flow performs:
+### 3.4 IP Environment
 
-```text
-Yosys synthesis
-      │
-      ▼
-netlist.v
-      │
-      ▼
-OpenSTA
-      │
-      ▼
-timing analysis
-```
-
-Outputs are placed in:
-
-```text
-ip/<ip_name>/syn/outputs/
-```
-
-Logs are placed in:
-
-```text
-ip/<ip_name>/syn/logs/
-```
-
-The synthesis flow fails if:
-
-* the RTL filelist is missing
-* the SDC file is missing
-* Yosys is unavailable
-* OpenSTA is unavailable
-* synthesis does not produce a netlist
-* OpenSTA exits with an error
-* timing violations are detected
-
-This makes the synthesis + STA flow suitable for repeatable local runs and CI integration.
-
-## Adding a New IP
-
-The intended workflow is:
-
-```text
-1. Create ip/<ip_name>/
-2. Add RTL
-3. Add rtl/filelist.f
-4. Add simulation flow
-5. Add simulation filelist
-6. Add synthesis flow
-7. Add syn/filelist_syn.f
-8. Add constraints.sdc
-9. Register <IP_NAME>_HOME in set_env.sh
-10. Run simulation
-11. Run synthesis + STA
-```
+Each IP should expose a repository environment variable when needed.
 
 For example:
 
 ```bash
-export NEW_IP_HOME="${IP_HOME}/new_ip"
+export SYNC_FIFO_HOME="${IP_HOME}/sync_fifo"
 ```
 
-The IP-specific scripts should then reference:
+A new IP should follow the same convention:
 
 ```bash
-${NEW_IP_HOME}
+export <IP_NAME>_HOME="${IP_HOME}/<ip_name>"
 ```
 
-rather than hard-coding repository paths.
+IP-specific scripts should use the corresponding environment variable instead of hard-coding absolute repository paths.
 
-## Design Philosophy
+---
 
-The repository follows several principles:
+### 3.5 Development Flow
 
-* **Small IPs** — each block should solve one well-defined hardware problem.
-* **Reusable RTL** — avoid technology-specific implementation wherever possible.
-* **Self-contained IP flows** — simulation and synthesis configuration live with the IP.
-* **Reproducible tools** — tool versions are pinned centrally.
-* **Automated verification** — simulation and timing analysis should be executable from scripts.
-* **Fail-fast flows** — missing configuration and timing violations should terminate the run.
-* **Technology-aware validation** — synthesis and STA use the Nangate45 reference library.
-* **Composable architecture** — individual primitives can be combined into larger protocols and subsystems.
+The expected development flow for an IP is:
+
+```text
+                    ┌──────────────┐
+                    │     RTL      │
+                    └──────┬───────┘
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │   Verilator  │
+                    │  Simulation  │
+                    └──────┬───────┘
+                           │
+                         PASS
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │    Yosys     │
+                    │   + ABC      │
+                    └──────┬───────┘
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │   Netlist    │
+                    └──────┬───────┘
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │   OpenSTA    │
+                    │  SS / TT / FF│
+                    └──────────────┘
+```
+
+For each IP, the expected validation sequence is:
+
+```text
+1. Implement RTL
+2. Run simulation
+3. Fix functional failures
+4. Run synthesis
+5. Check generated netlist
+6. Run STA
+7. Check timing results
+8. Update IP status
+```
+
+---
+
+### 3.6 Contributing
+
+To contribute a new IP:
+
+1. Create `ip/<ip_name>/`
+2. Implement the RTL
+3. Add `rtl/filelist.f`
+4. Add a Verilator testbench
+5. Add `sim/filelist_sim.f`
+6. Add `sim/run_sim.sh`
+7. Add `syn/filelist_syn.f`
+8. Add `syn/constraints.sdc`
+9. Add `syn/run_syn.sh`
+10. Register `<IP_NAME>_HOME` in `set_env.sh`
+11. Run simulation
+12. Run synthesis and STA
+13. Update the IP status table
+
+A contribution should follow the repository's existing structure and conventions.
+
+The goal is that another developer can enter:
+
+```text
+ip/<ip_name>/
+```
+
+and immediately understand:
+
+* what the IP does
+* where the RTL is
+* how to simulate it
+* how to synthesize it
+* how timing is constrained
+* where the generated results are stored
+
+---
 
 ## License
 
