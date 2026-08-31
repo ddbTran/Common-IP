@@ -144,6 +144,8 @@ common_ips/
 │   │   └── syn/
 │   │       ├── filelist_syn.f
 │   │       ├── constraints.sdc
+│   │       ├── run_syn.tcl
+│   │       ├── run_sta.tcl
 │   │       ├── run_syn.sh
 │   │       ├── outputs/
 │   │       └── logs/

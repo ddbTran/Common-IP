@@ -1,0 +1,316 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[a4paper,margin=20mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{multirow}
+
+% ============================================================
+% HOW TO USE THIS TEMPLATE
+% ============================================================
+% 1. Fill in the \IPName, \IPVersion, \IPAuthor, \IPDate commands below.
+% 2. Replace every <ANGLE-BRACKET> placeholder with real content.
+% 3. Duplicate table rows / itemize entries as needed for your IP's
+%    actual ports, parameters, tests, etc. Delete unused example rows.
+% 4. Sections 6 (Verification) and 7 (Synthesis) are left with "--"
+%    placeholders on purpose — fill in once results are available,
+%    or delete rows that don't apply to your IP.
+% 5. Save this file as <ip_name>_doc.tex and rename the block diagram
+%    image accordingly.
+% ============================================================
+
+% ============================================================
+% Document Information -- EDIT THESE FOR EACH NEW IP
+% ============================================================
+\newcommand{\IPName}{<IP Name>}
+\newcommand{\IPVersion}{v0.1}
+\newcommand{\IPAuthor}{<Author Name>}
+\newcommand{\IPDate}{<Month Year>}
+
+\title{
+    \vspace{-20mm}
+    \textbf{\IPName}\\[2mm]
+    \large IP Design Documentation
+}
+
+\author{\IPAuthor}
+\date{\IPDate}
+
+% ============================================================
+% Page Style
+% ============================================================
+\pagestyle{fancy}
+\fancyhf{}
+
+\lhead{\textbf{\IPName}}
+\rhead{\IPVersion}
+\cfoot{\thepage}
+
+\setlength{\headheight}{14pt}
+
+% ============================================================
+% Section Style
+% ============================================================
+\titleformat{\section}
+    {\large\bfseries}
+    {\thesection.}
+    {0.5em}
+    {}
+
+\titleformat{\subsection}
+    {\normalsize\bfseries}
+    {\thesubsection}
+    {0.5em}
+    {}
+
+% ============================================================
+% Hyperlink
+% ============================================================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+% ============================================================
+% Listings
+% ============================================================
+\lstset{
+    basicstyle=\ttfamily\small,
+    frame=single,
+    breaklines=true,
+    columns=fullflexible
+}
+
+% ============================================================
+% Document
+% ============================================================
+\begin{document}
+
+% ============================================================
+% Cover Page
+% ============================================================
+
+\begin{titlepage}
+\centering
+\vspace*{\fill}
+{\Huge\bfseries \IPName\par}\vspace{8mm}
+{\Large IP Design Documentation\par}\vspace{15mm}
+{\large Version \IPVersion\par}\vspace{3mm}
+{\large\IPAuthor\par}\vspace{3mm}
+{\large \IPDate\par}\vspace*{\fill}
+
+\end{titlepage}
+
+% ============================================================
+\section{Revision}
+% ============================================================
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{c c l X}
+\toprule
+\textbf{Version} & \textbf{Date} & \textbf{Author} & \textbf{Description} \\
+\midrule
+v0.1 & <Month Year> & <Author Name> & Initial release \\
+% Add a new row per revision, e.g.:
+% v0.2 & <Month Year> & <Author Name> & <What changed> \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ============================================================
+\section{Overview}
+% ============================================================
+
+\subsection{Purpose}
+
+% One short paragraph: what does this IP do, and in what context
+% is it used (e.g. clock domain, bus protocol, system role)?
+<Describe the purpose of the IP in 2-4 sentences.>
+
+\subsection{Features}
+
+\begin{itemize}[noitemsep]
+    \item <Feature 1>
+    \item <Feature 2>
+    \item <Feature 3>
+    % Add/remove bullets as needed
+\end{itemize}
+
+
+% ============================================================
+\section{Architecture}
+% ============================================================
+
+\subsection{Block Diagram}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{<block_diagram_filename>.png}
+    \caption{<IP Name> block diagram}
+    \label{fig:block_diagram}
+\end{figure}
+
+\subsection{IO Ports}
+
+% Group ports logically (Clock/Reset, Control, Data, Status, etc.)
+% and add/remove rows as needed. \multirow{N}{*}{Group} spans N rows.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{|c|c|c|c|X|}
+\hline
+\textbf{Group} &
+\textbf{Port} &
+\textbf{Direction} &
+\textbf{Width} &
+\multicolumn{1}{c|}{\textbf{Description}} \\
+\hline
+
+\multirow{2}{*}{Clock/Reset}
+    & clk\_i  & Input  & 1  & Clock signal \\
+    & rst\_i  & Input  & 1  & Asynchronous reset \\
+\hline
+
+\multirow{2}{*}{<Group Name>}
+    & <port\_name\_i>  & Input  & <WIDTH>  & <Description> \\
+    & <port\_name\_o>  & Output & <WIDTH>  & <Description> \\
+\hline
+
+% Duplicate the \multirow block above for each additional port group
+
+\end{tabularx}
+\caption{<IP Name> interface}
+\label{tab:interface}
+\end{table}
+
+\subsection{Config Parameters}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.2}
+
+\begin{tabularx}{\textwidth}{|c|c|c|X|}
+\hline
+\textbf{Parameter} &
+\textbf{Default} &
+\textbf{Range} &
+\multicolumn{1}{c|}{\textbf{Description}} \\
+\hline
+
+<PARAM\_NAME> & <default> & <range> & <Description> \\
+\hline
+% Add one row per parameter
+
+\end{tabularx}
+
+\caption{Configurable parameters}
+\label{tab:parameters}
+\end{table}
+
+
+% ============================================================
+\section{Functional Description}
+% ============================================================
+ 
+% Describe every functional capability of the IP and how to operate
+% it, referencing exact port names. There is no fixed subsection
+% breakdown here -- write as many or as few subsections as the IP
+% actually needs (e.g. some IPs need just one operation description,
+% others need several: normal operation, configuration modes, error
+% handling, reset, status, etc.). Suggested topics to cover somewhere
+% in this section, as applicable:
+%   - Overall operating behavior end to end
+%   - Each distinct operation/mode and the conditions that trigger it
+%   - Reset behavior (assertion/deassertion, resulting state)
+%   - Any special behaviors: flush, error handling, back-pressure,
+%     arbitration, power modes, etc.
+%   - Status/flag outputs and what they indicate
+% Delete the example subsection below and replace with real content.
+ 
+\subsection{<Descriptive subsection title as needed>}
+ 
+<Describe this piece of functional behavior/operation guide,
+referencing exact port names. Add or remove subsections freely
+to fully cover the IP's functional capability.>
+
+
+% ============================================================
+\section{Verification Test}
+% ============================================================
+ 
+% Simple sanity checks confirming the IP works as intended --
+% not full DV coverage. List the test cases that were run
+% and passed.
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{l c X}
+\toprule
+\textbf{Test} & \textbf{Status} & \textbf{Description} \\
+\midrule
+<Test name> & PASS & <What the test checks> \\
+% Add one row per test case
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ============================================================
+\section{Synthesis Report}
+% ============================================================
+ 
+% Synthesized using the Nangate45 library. Fill in the results below.
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{l X}
+\toprule
+\textbf{Metric} & \textbf{Result} \\
+\midrule
+Library     & Nangate45 \\
+Frequency   & -- \\
+Cell Count  & -- \\
+Cell Area   & -- \\
+WNS         & -- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+ 
+% Only include an SDC subsection if this IP needs special timing
+% constraints (e.g. multicycle paths, false paths, generated clocks).
+% Otherwise, delete the subsection below.
+\subsection{SDC}
+ 
+\begin{lstlisting}
+<constraint command, e.g. set_multicycle_path 2 -from ... -to ...>
+\end{lstlisting}
+ 
+ 
+% ============================================================
+\section{Note}
+% ============================================================
+ 
+% Optional:
+% - Known limitations
+% - Integration notes
+% - Design assumptions
+% - Known issues
+<Add any notes here, or delete this section if not needed.>
+
+\end{document}
