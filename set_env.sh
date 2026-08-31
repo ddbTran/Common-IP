@@ -19,7 +19,7 @@ export IP_HOME="${COMMON_IPS_HOME}/ip"
 
 export SYNC_FIFO_HOME="${IP_HOME}/sync_fifo"
 export SYNCHRONIZER_HOME="${IP_HOME}/synchronizer"
-
+export RESET_SYNC_HOME="${IP_HOME}/reset_sync"
 
 # ------------------------------------------------------------
 # Tool

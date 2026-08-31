@@ -5,7 +5,6 @@ on:
     branches:
       - dev
     paths:
-      - "set_env.sh"
       - "scripts/**"
       - "Makefile"
   workflow_dispatch:
