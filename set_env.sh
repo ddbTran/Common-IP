@@ -18,6 +18,7 @@ export COMMON_IPS_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export IP_HOME="${COMMON_IPS_HOME}/ip"
 
 export SYNC_FIFO_HOME="${IP_HOME}/sync_fifo"
+export SYNCHRONIZER_HOME="${IP_HOME}/synchronizer"
 
 
 # ------------------------------------------------------------
