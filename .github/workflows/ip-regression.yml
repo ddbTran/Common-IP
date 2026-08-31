@@ -1,12 +1,18 @@
 name: ip-regression
 
 on:
-  pull_request:
+  push:
     branches:
       - dev
+    paths:
+      - "ip/**"
+
+  pull_request:
+    branches:
       - main
     paths:
       - "ip/**"
+
   workflow_dispatch:
 
 jobs:
