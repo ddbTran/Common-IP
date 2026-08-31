@@ -29,54 +29,16 @@ ip/**/sim/*.dump
 **/*.o
 
 # ------------------------------------------------------------
-# Synthesis temporary files
-# ------------------------------------------------------------
-ip/**/syn/_tmp_*/
-ip/**/syn/work/
-ip/**/syn/tmp/
-ip/**/syn/obj_dir/
-
-# Yosys / ABC temporary files
-**/_tmp_yosys-abc-*
-**/*.il
-**/*.blif
-**/*.aig
-**/*.rtlil
-
-# ------------------------------------------------------------
 # Synthesis generated logs / reports
 # ------------------------------------------------------------
 ip/**/syn/logs/
-ip/**/syn/reports/
-ip/**/syn/netlist/
-
-# Generic generated synthesis outputs
-**/*.log
-**/*.rpt
-
-# ------------------------------------------------------------
-# Generated netlists / implementation outputs
-# ------------------------------------------------------------
-**/*_netlist.v
-**/*_netlist.sv
-**/*_synth.v
-**/*_synth.sv
+ip/**/syn/outputs/
 
 # ------------------------------------------------------------
 # PDK / standard-cell libraries
 # Keep PDK outside Git repository.
 # ------------------------------------------------------------
-lib/
-
-# ------------------------------------------------------------
-# Coverage
-# ------------------------------------------------------------
-coverage/
-**/coverage/
-*.coverage
-*.gcda
-*.gcno
-*.gcov
+libs/
 
 # ------------------------------------------------------------
 # Temporary files

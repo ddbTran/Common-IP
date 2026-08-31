@@ -1,0 +1,1 @@
+-f ${SYNC_FIFO_HOME}/rtl/filelist.f
