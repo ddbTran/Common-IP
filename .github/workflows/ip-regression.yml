@@ -1,15 +1,12 @@
-name: toolchain-build-test
+name: ip-regression
 
 on:
-  push:
-    paths:
-      - "set_env.sh"
-      - "scripts/**"
-      - "Makefile"
   pull_request:
     branches:
       - dev
       - main
+    paths:
+      - "ip/**"
   workflow_dispatch:
 
 jobs:
@@ -19,9 +16,19 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04]
     runs-on: ${{ matrix.os }}
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Build and verify toolchain
         run: make build
 
+      - name: Run sync_fifo simulation
+        run: |
+          source set_env.sh
+          ./ip/sync_fifo/sim/run_sim.sh
+
+      - name: Run sync_fifo synthesis and STA
+        run: |
+          source set_env.sh
+          ./ip/sync_fifo/syn/run_syn.sh
