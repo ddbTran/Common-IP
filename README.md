@@ -50,11 +50,10 @@ The following table defines the target IP set and its current implementation sta
 | `sync_fifo`       | Synchronous single-clock FIFO              |   Done  |   Done  |   Done  |
 | `gray_fifo`       | FIFO using Gray-coded pointers             | Planned | Planned | Planned |
 | `ring_fifo`       | Ring-buffer based FIFO                     | Planned | Planned | Planned |
-| `clk_div`         | Programmable clock divider                 | Planned | Planned | Planned |
+| `clk_div`         | Programmable clock divider                 |   Done  |   Done  | Planned |
 | `clk_mux`         | Clock source multiplexer                   | Planned | Planned | Planned |
 | `reset_handshake` | Reset sequencing and handshake logic       | Planned | Planned | Planned |
 | `synchrnozier`    | Generic clock-domain synchronizer          |   Done  |   N/A   |   N/A   |
-| `reset_sync`      | Reset synchronizer                         |   Done  |   N/A   |   N/A   |
 | `2phase_hs`       | Two-phase clock-domain crossing handshake  | Planned | Planned | Planned |
 | `4phase_hs`       | Four-phase clock-domain crossing handshake | Planned | Planned | Planned |
 | `pulse_sync`      | Pulse synchronization across clock domains | Planned | Planned | Planned |
