@@ -2,9 +2,11 @@
 
 > Programmable clock divider.
 
-**Version:** v1.0
-**Author:** Dat Tran Tan
-**Status:** <Development / Stable / Experimental>
+| Item    | Value        |
+| ------- | ------------ |
+| Version | v1.0         |
+| Author  | Dat Tran Tan |
+| Date    | Sept 2026    |
 
 ---
 
