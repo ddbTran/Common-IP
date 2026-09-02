@@ -23,7 +23,7 @@ The synchronous FIFO provides temporary data storage between a producer and a co
 
 ### 2.1 Block Diagram
 
-The FIFO consists of storage, read and write control, and status logic for managing data transfer between the write source and read destination.
+![Synchronous FIFO Block Diagram](docs/sync_fifo_diagram.png)
 
 ### 2.2 IO Ports
 
