@@ -56,15 +56,15 @@ and other relevant functional details as needed.>
 
 ## 4. Usage
 
-### 4.1 Operation Guide
-
-<Describe how the IP operates, expected input/output sequence,
-and any required operation sequence or timing conditions.>
-
-### 4.2 Integration Guide
+### 4.1 Integration Guide
 
 <Describe how to connect the IP, including clock, reset,
 input/output connections, and important integration conditions.>
+
+### 4.2 Operation Guide
+
+<Describe how the IP operates, expected input/output sequence,
+and any required operation sequence or timing conditions.>
 
 ## 5. Verification
 
