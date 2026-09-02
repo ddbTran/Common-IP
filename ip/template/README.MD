@@ -1,76 +1,89 @@
 # <IP Name>
 
-> <One-line description of the IP.>
+> <One-line description>
 
-**Version:** v0.1  
-**Author:** <Author Name>  
-**Status:** <Development / Stable / Experimental>
+| Item | Value |
+|---|---|
+| Version | <Version> |
+| Author | <Author> |
+| Date | <Date> |
 
----
+## 1. Overview
 
-## Overview
+<Brief description of the IP and its purpose.>
 
-### Purpose
-
-<Describe the purpose of the IP in 2-4 sentences.>
-
-### Features
+### 1.1 Features
 
 - <Feature 1>
 - <Feature 2>
 - <Feature 3>
 
----
+## 2. Architecture
 
-## Architecture
+### 2.1 Block Diagram
 
-### Block Diagram
+<Diagram>
 
-![<IP Name> block diagram](docs/<ip_name>_diagram.png)
+### 2.2 IO Ports
 
-### IO Ports
+| Port | Direction | Description |
+|---|---|---|
+| <port> | input | <Description> |
+| <port> | output | <Description> |
 
-| Group | Port | Direction | Width | Description |
-|---|---|---|---|---|
-| Clock/Reset | `clk_i` | Input | 1 | Clock signal |
-| Clock/Reset | `rst_ni` | Input | 1 | Active-low reset |
-| <Group> | `<port_name_i>` | Input | `<WIDTH>` | <Description> |
-| <Group> | `<port_name_o>` | Output | `<WIDTH>` | <Description> |
+### 2.3 Parameters
 
-### Config Parameters
+| Parameter | Default | Description |
+|---|---:|---|
+| <Parameter> | <Value> | <Description> |
 
-| Parameter | Default | Range | Description |
-|---|---:|---|---|
-| `<PARAM_NAME>` | `<default>` | `<range>` | <Description> |
+## 3. Functional Description
 
----
+### 3.1 <Behavior 1>
 
-## Functional Description
+<Describe the behavior.>
 
-### <Operation / Feature>
+### 3.2 <Behavior 2>
 
-<Describe the functional behavior of this operation or feature. 
-Reference exact port and parameter names where appropriate.>
+<Describe the behavior.>
 
-### Reset Behavior
+### 3.3 <Behavior 3>
 
-<Describe reset assertion, deassertion, and resulting state.>
+<Describe the behavior.>
 
-### <Additional Behavior>
+<Include reset behavior, status/flag behavior, corner cases,
+and other relevant functional details as needed.>
 
-<Describe any other relevant behavior such as flush, bypass,
-error handling, status flags, arbitration, or special modes.>
+## 4. Usage
 
----
+### 4.1 Operation Guide
 
-## Interface Behavior
+<Describe how the IP operates, expected input/output sequence,
+and any required operation sequence or timing conditions.>
 
-<Optional section for timing/transaction behavior that is important
-for integration.>
+### 4.2 Integration Guide
 
-### <Scenario>
+<Describe how to connect the IP, including clock, reset,
+input/output connections, and important integration conditions.>
 
-<Describe the expected sequence of inputs and outputs.>
+## 5. Verification
 
-```text
-<Optional timing diagram / ASCII waveform>
+| Test | Status | Description |
+|---|---|---|
+| <Test 1> | PASS | <Description> |
+| <Test 2> | PASS | <Description> |
+
+## 6. Synthesis
+
+| Item | Value |
+|---|---|
+| Library | <Library> |
+| Frequency | <Frequency> |
+| Cell Count | <Value> |
+| Cell Area | <Value> |
+| WNS | <Value> |
+
+## 7. Notes
+
+<Known limitations, assumptions, constraints, implementation notes,
+or other information useful to users.>
