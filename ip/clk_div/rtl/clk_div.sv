@@ -1,138 +1,176 @@
 // ============================================================================
 // Module      : clk_div
-// Description : Parameterized clock divider
-// Author      : Dat Tran <dat.trantan.business@gmail.com>
+// Author      : Dat Tran Tan <dat.trantan.business@gmail.com>
+// Description : Configurable clock divider
 // ============================================================================
 
 `timescale 1ns/1ps
 
 module clk_div #(
-    // Configurable Parameters
-    parameter int unsigned DIV_VALUE = 3,
+    parameter int unsigned MAX_DIVISION     = 16,
+    parameter int unsigned DEFAULT_DIVISION = 2,
 
-    // Derived Parameters
-    localparam int unsigned DIV       = (DIV_VALUE < 2) ? 1 : DIV_VALUE,
-    localparam int unsigned CNT_WIDTH = (DIV > 2) ? $clog2(DIV) : 1,
-    localparam int unsigned HALF      = (DIV + 1) / 2
+    localparam int unsigned CNT_WIDTH       = $clog2(MAX_DIVISION+1)
 ) (
-    input  logic clk_i,
-    input  logic rst_ni,
-    output logic clk_o
+    input  logic                 clk_i,
+    input  logic                 rst_ni,
+    input  logic                 en_i,
+
+    input  logic [CNT_WIDTH-1:0] div_i,
+    input  logic                 valid_i,
+    output logic                 ready_o,
+
+    output logic                 clk_o
 );
 
-    //----------------------------------------------------------------------
-    // Internal signals
-    //----------------------------------------------------------------------
+  typedef enum logic [1:0] {
+    StIdle,
+    StFunc,
+    StWait
+  } state_e;
 
-    logic clk_active;
-    logic clk_div;
+  state_e state_q, state_d;
 
-    //----------------------------------------------------------------------
-    // Clock active synchronizer
-    //----------------------------------------------------------------------
+  logic [CNT_WIDTH-1:0] cnt_q, cnt_d;
+  logic [CNT_WIDTH-1:0] div_q, div_d;
 
-    synchronizer #(
-        .DEPTH    (2),
-        .RST_VALUE(0)
-    ) u_clk_active (
-        .clk_i  (clk_i),
-        .rst_ni (rst_ni),
-        .data_i (1'b1),
-        .data_o (clk_active)
-    );
+  logic toggle_en;
 
-    //----------------------------------------------------------------------
-    // Clock divider
-    //----------------------------------------------------------------------
-
-    generate
-        // Bypass clk_i when DIV_VALUE < 2
-        if (DIV == 1) begin : gen_div_1
-            assign clk_div = clk_i;
+  always_comb begin
+    state_d = state_q;
+    unique case (state_q)
+      StIdle: begin
+        if (en_i) begin
+          state_d = StFunc;
         end
-        // Generate only posedge counter if divide to even value
-        else if ((DIV % 2) == 0) begin : gen_div_even
-            logic [CNT_WIDTH-1:0] cnt_q;
-            logic                 high;
-
-            always_ff @(posedge clk_i or negedge rst_ni) begin
-                if (!rst_ni) begin
-                    cnt_q <= '0;
-                end
-                else if (!clk_active) begin
-                    cnt_q <= '0;
-                end
-                else if (cnt_q == CNT_WIDTH'(DIV - 1)) begin
-                    cnt_q <= '0;
-                end
-                else begin
-                    cnt_q <= cnt_q + 1'b1;
-                end
-            end
-
-            assign high    = cnt_q < CNT_WIDTH'(HALF);
-            assign clk_div = high;
+      end
+      StFunc: begin
+        if (!en_i || (valid_i && (div_q != div_i))) state_d = StWait;
+      end
+      StWait: begin
+        if (cnt_q == 0) begin
+          state_d = StIdle;
         end
-        // Generate both posedge and negedge counter to divide to odd value
-        else begin : gen_div_odd
-            logic [CNT_WIDTH-1:0] cnt_p_q;
-            logic [CNT_WIDTH-1:0] cnt_n_q;
-            logic                 p_high;
-            logic                 n_high;
+      end
+      default: begin
+        state_d = StIdle;
+      end
+    endcase
+  end
 
-	    always_ff @(posedge clk_i or negedge rst_ni) begin
-                if (!rst_ni) begin
-                    cnt_p_q <= '0;
-                end
-                else if (!clk_active) begin
-                    cnt_p_q <= '0;
-                end
-                else if (cnt_p_q == CNT_WIDTH'(DIV - 1)) begin
-                    cnt_p_q <= '0;
-                end
-                else begin
-                    cnt_p_q <= cnt_p_q + 1'b1;
-                end
-            end
+  always_comb begin
+    cnt_d   = cnt_q;
+    div_d   = div_q;
+    ready_o = 1'b0;
+    toggle_en   = 1'b0;
 
-            always_ff @(negedge clk_i or negedge rst_ni) begin
-                if (!rst_ni) begin
-                    cnt_n_q <= '0;
-                end
-                else if (!clk_active) begin
-                    cnt_n_q <= '0;
-                end
-                else if (cnt_n_q == CNT_WIDTH'(DIV - 1)) begin
-                    cnt_n_q <= '0;
-                end
-                else begin
-                    cnt_n_q <= cnt_n_q + 1'b1;
-                end
-            end
-
-            assign p_high  = cnt_p_q < CNT_WIDTH'(HALF);
-            assign n_high  = cnt_n_q < CNT_WIDTH'(HALF);
-            assign clk_div = p_high && n_high;
+    unique case (state_q)
+      StIdle: begin
+        cnt_d   = '0;
+        ready_o = 1'b1;
+       if (valid_i) begin
+          div_d = div_i;
         end
-    endgenerate
+      end
 
-    //----------------------------------------------------------------------
-    // Output clock gating (ICG)
-    //----------------------------------------------------------------------
+      StFunc: begin
+        cnt_d = (cnt_q == (div_q - 1)) ? '0 : cnt_q + 1'b1;
+        toggle_en = (div_q > 1);
+        ready_o = (valid_i && (div_i == div_q)) ? 1'b1 : 1'b0;
+      end
 
-    clk_gate u_clk_gate (
-        .clk_i (clk_div),
-        .en_i  (clk_active),
-        .clk_o (clk_o)
-    );
+      StWait: begin
+        cnt_d = (cnt_q == (div_q - 1)) ? '0 : cnt_q + 1'b1;
+        toggle_en = (div_q > 1);
+        if (cnt_q == (div_q - 1'b1)) begin
+          ready_o = 1'b1;
 
-    //----------------------------------------------------------------------
-    // Parameter checks
-    //----------------------------------------------------------------------
+          if (valid_i) begin
+            div_d = div_i;
+          end
+        end
+      end
 
-    initial begin
-        if (DIV_VALUE < 2)
-            $warning("DIV_VALUE < 2, using divide-by-1");
+      default: begin
+        cnt_d   = '0;
+        div_d   = CNT_WIDTH'(DEFAULT_DIVISION);
+        ready_o = 1'b0;
+        toggle_en   = 1'b0;
+      end
+    endcase
+  end
+
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      state_q <= StIdle;
+      cnt_q   <= '0;
+      div_q   <= CNT_WIDTH'(DEFAULT_DIVISION);
+    end else begin
+      state_q <= state_d;
+      cnt_q   <= cnt_d;
+      div_q   <= div_d;
     end
+  end
+
+  logic toggle_p_q, toggle_p_d;
+  logic toggle_n_q, toggle_n_d;
+
+  always_comb begin
+    toggle_p_d = 1'b0;
+    toggle_n_d = 1'b0;
+    if(toggle_en) begin
+        if (div_q[0]) begin
+          toggle_p_d = (cnt_q == '0)                    ? ~toggle_p_q : toggle_p_q;
+          toggle_n_d = (cnt_q == ((div_q >> 1) + 1'b1)) ? ~toggle_n_q : toggle_n_q;
+        end else begin
+          toggle_p_d = ((cnt_q == '0) || cnt_q == (div_q >> 1)) ? ~toggle_p_q : toggle_p_q;
+          toggle_n_d = 1'b0;
+        end
+    end
+  end
+
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      toggle_p_q <= 1'b0;
+    end else begin
+      toggle_p_q <= toggle_p_d;
+    end
+  end
+
+  always_ff @(negedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      toggle_n_q <= 1'b0;
+    end else begin
+      toggle_n_q <= toggle_n_d;
+    end
+  end
+
+  logic odd_clk;
+  logic even_clk;
+  logic div_clk;
+  logic gen_clk;
+
+  logic icg_en;
+  always_ff @(negedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      icg_en <= 0;
+    end else begin
+      case (state_q)
+        StIdle: icg_en <= 0;
+        StFunc: icg_en <= (!en_i && (cnt_q == (div_q - 1))) ? 0 : 1;
+        StWait: icg_en <= div_q == 1 ? ~icg_en : cnt_q == (div_q - 1) ? ~icg_en : icg_en;
+        default: icg_en <= 0;
+      endcase
+    end
+  end
+
+
+  assign odd_clk  = toggle_p_q ^ toggle_n_q;
+  assign even_clk = toggle_p_q;
+  assign div_clk = div_q[0] ? odd_clk : even_clk;
+  assign gen_clk = (div_q > 1) ? div_clk : clk_i;
+
+  
+  assign clk_o = gen_clk && icg_en;
 
 endmodule
