@@ -14,13 +14,13 @@ export COMMON_IPS_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ------------------------------------------------------------
 # IP
 # ------------------------------------------------------------
-
 export IP_HOME="${COMMON_IPS_HOME}/ip"
 
 export SYNC_FIFO_HOME="${IP_HOME}/sync_fifo"
 export SYNCHRONIZER_HOME="${IP_HOME}/synchronizer"
 export CLK_GATE_HOME="${IP_HOME}/clk_gate"
 export CLK_DIV_HOME="${IP_HOME}/clk_div"
+export CLK_MUX_HOME="${IP_HOME}/clk_mux"
 
 # ------------------------------------------------------------
 # Tool
