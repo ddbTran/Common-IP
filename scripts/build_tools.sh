@@ -130,6 +130,7 @@ REQUIRED_DEV_PACKAGES=(
     help2man googletest libgmock-dev
     clang lld
     graphviz xdot
+    lz4
 )
 
 stage_dev_deps() {
