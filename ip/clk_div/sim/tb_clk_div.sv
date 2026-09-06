@@ -162,8 +162,8 @@ module tb_clk_div;
       report_error($sformatf("clk_o=%0b after reset, expected 0", clk_o));
     end
 
-    if (ready_o !== 1'b1) begin
-      report_error($sformatf("ready_o=%0b while disabled, expected 1", ready_o));
+    if (ready_o !== 1'b0) begin
+      report_error($sformatf("ready_o=%0b while disabled, expected 0", ready_o));
     end
   endtask
 
@@ -424,7 +424,7 @@ module tb_clk_div;
       @(posedge clk_i);
       #RESET_SETTLE;
 
-      if ((ready_o === 1'b1) && (clk_o === 1'b0)) begin
+      if ((ready_o === 1'b0) && (clk_o === 1'b0)) begin
         stable_cycles++;
       end else begin
         stable_cycles = 0;
@@ -458,9 +458,9 @@ module tb_clk_div;
         report_error("clk_o toggled after disable completion");
       end
 
-      if (ready_o !== 1'b1) begin
+      if (ready_o !== 1'b0) begin
         report_error($sformatf(
-          "ready_o=%0b after disable completion, expected 1",
+          "ready_o=%0b after disable completion, expected 0",
           ready_o
         ));
       end
@@ -631,7 +631,7 @@ module tb_clk_div;
   // Testcases
 
   task automatic tc_default_after_reset;
-    check_ready(1'b1, "Idle after reset");
+    check_ready(1'b0, "Idle after reset");
     enable_and_check(DEFAULT_DIVISION);
     disable_and_wait();
   endtask
@@ -964,7 +964,7 @@ module tb_clk_div;
     quality_monitor_en = 1'b1;
     clk_o_edge_valid   = 1'b0;
 
-    if (ready_o !== 1'b1) begin
+    if (ready_o !== 1'b0) begin
       report_error("ready_o did not return high after reset canceled pending request");
     end
 

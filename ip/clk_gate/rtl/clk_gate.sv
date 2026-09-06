@@ -13,11 +13,11 @@ module clk_gate (
 );
 
     logic en_q;
-
-    always_ff @(negedge clk_i) begin
-        en_q <= en_i;
+    /* verilator lint_off COMBDLY */
+    always_latch begin
+        if (clk_i == 1'b0) en_q = en_i;
     end
-
+    /* verilator lint_on COMBDLY */
     assign clk_o = clk_i & en_q;
 
 endmodule

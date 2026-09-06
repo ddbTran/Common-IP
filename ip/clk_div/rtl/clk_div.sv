@@ -23,33 +23,46 @@ module clk_div #(
     output logic                 clk_o
 );
 
+  initial begin
+    assert (MAX_DIVISION >= 1)
+      else $error("MAX_DIVISION must be >= 1");
+
+    assert (DEFAULT_DIVISION <= MAX_DIVISION)
+      else $error("DEFAULT_DIVISION must be <= MAX_DIVISION");
+  end
+
   typedef enum logic [1:0] {
-    StIdle,
-    StFunc,
-    StWait
+    StIdle,  // Stop clock, load new config if available
+    StFunc,  // Generate clock
+    StWait   // Wait for current period to complete
   } state_e;
 
   state_e state_q, state_d;
 
   logic [CNT_WIDTH-1:0] cnt_q, cnt_d;
   logic [CNT_WIDTH-1:0] div_q, div_d;
+  logic [CNT_WIDTH-1:0] div_norm;
+  assign div_norm = (div_i == 0) ? 1 : div_i; // Normalize div_i
 
   logic toggle_en;
+  logic icg_en;
 
   always_comb begin
     state_d = state_q;
     unique case (state_q)
       StIdle: begin
         if (en_i) begin
-          state_d = StFunc;
+          state_d = StFunc;  // Idle -> Func: Generate clock when enabled
         end
       end
       StFunc: begin
-        if (!en_i || (valid_i && (div_q != div_i))) state_d = StWait;
+        if (!en_i || (valid_i && (div_q != div_norm))) begin
+          state_d = (cnt_q == 0) ? StIdle : StWait;  // Func -> Wait: Stop or wait for new config
+        end
       end
       StWait: begin
         if (cnt_q == 0) begin
-          state_d = StIdle;
+          state_d = StIdle;  // Wait -> Idle: Finish current period with clk_o low
         end
       end
       default: begin
@@ -59,43 +72,42 @@ module clk_div #(
   end
 
   always_comb begin
-    cnt_d   = cnt_q;
-    div_d   = div_q;
-    ready_o = 1'b0;
-    toggle_en   = 1'b0;
-
+    cnt_d     = cnt_q;
+    div_d     = div_q;
+    ready_o   = 1'b0;
+    toggle_en = 1'b0;
+    icg_en    = 1'b0;
     unique case (state_q)
       StIdle: begin
-        cnt_d   = '0;
-        ready_o = 1'b1;
-       if (valid_i) begin
-          div_d = div_i;
-        end
-      end
-
-      StFunc: begin
-        cnt_d = (cnt_q == (div_q - 1)) ? '0 : cnt_q + 1'b1;
-        toggle_en = (div_q > 1);
-        ready_o = (valid_i && (div_i == div_q)) ? 1'b1 : 1'b0;
-      end
-
-      StWait: begin
-        cnt_d = (cnt_q == (div_q - 1)) ? '0 : cnt_q + 1'b1;
-        toggle_en = (div_q > 1);
-        if (cnt_q == (div_q - 1'b1)) begin
+        // Keep clock stopped while loading a new configuration.
+        cnt_d = '0;
+        if (valid_i) begin
           ready_o = 1'b1;
-
-          if (valid_i) begin
-            div_d = div_i;
-          end
+          div_d = div_norm;
         end
       end
-
+      StFunc: begin
+        // Count one complete output period.
+        cnt_d     = (cnt_q == (div_q - 1)) ? '0 : cnt_q + 1'b1;
+        toggle_en = (div_q > 1);
+        // Configuration is accepted when it matches the active division.
+        ready_o = valid_i && (div_norm == div_q);
+        // Keep the current period intact before stopping or reconfiguring.
+        icg_en = ((!en_i || (valid_i && (div_q != div_norm))) && (cnt_q == 0)) ? 1'b0 : 1'b1;
+      end
+      StWait: begin
+        // Complete the current period before stopping the clock.
+        cnt_d     = (cnt_q == (div_q - 1)) ? '0 : cnt_q + 1'b1;
+        toggle_en = (div_q > 1);
+        // Disable clock gating after reaching a safe clock boundary.
+        icg_en = (cnt_q == 0) ? 1'b0 : 1'b1;
+      end
       default: begin
-        cnt_d   = '0;
-        div_d   = CNT_WIDTH'(DEFAULT_DIVISION);
-        ready_o = 1'b0;
-        toggle_en   = 1'b0;
+        cnt_d     = '0;
+        div_d     = CNT_WIDTH'(DEFAULT_DIVISION);
+        ready_o   = 1'b0;
+        toggle_en = 1'b0;
+        icg_en    = 1'b0;
       end
     endcase
   end
@@ -145,32 +157,30 @@ module clk_div #(
     end
   end
 
+  // Clock generation path.
+  // This path generates the divided clock for even/odd division and
+  // bypasses the divider for division values of 0 or 1.
+  //
+  // NOTE: This entire clock path is implementation-sensitive.
+  // The AND, OR, XOR, and MUX logic in this path must be implemented
+  // using appropriate clock-aware cells to preserve clock integrity,
+  // duty cycle, and glitch-free operation.
+  // Replace clk_gate with the technology-specific clock-gating cell.
+  // DO NOT MODIFY this clock path during implementation.
   logic odd_clk;
   logic even_clk;
   logic div_clk;
   logic gen_clk;
 
-  logic icg_en;
-  always_ff @(negedge clk_i or negedge rst_ni) begin
-    if (!rst_ni) begin
-      icg_en <= 0;
-    end else begin
-      case (state_q)
-        StIdle: icg_en <= 0;
-        StFunc: icg_en <= (!en_i && (cnt_q == (div_q - 1))) ? 0 : 1;
-        StWait: icg_en <= div_q == 1 ? ~icg_en : cnt_q == (div_q - 1) ? ~icg_en : icg_en;
-        default: icg_en <= 0;
-      endcase
-    end
-  end
-
-
   assign odd_clk  = toggle_p_q ^ toggle_n_q;
   assign even_clk = toggle_p_q;
-  assign div_clk = div_q[0] ? odd_clk : even_clk;
-  assign gen_clk = (div_q > 1) ? div_clk : clk_i;
+  assign div_clk  = div_q[0] ? odd_clk : even_clk;
+  assign gen_clk  = (div_q > 1) ? div_clk : clk_i;
 
+  clk_gate u_clk_gate (
+    .clk_i(gen_clk),
+    .en_i(icg_en),
+    .clk_o(clk_o)
+  );
   
-  assign clk_o = gen_clk && icg_en;
-
-endmodule
+  endmodule

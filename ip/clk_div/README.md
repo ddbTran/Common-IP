@@ -1,174 +1,153 @@
-# Clock Divider
+# clk_div
 
-> Programmable clock divider.
+> Configurable clock divider with glitch-free clock gating and runtime reconfiguration.
 
-| Item    | Value        |
-| ------- | ------------ |
-| Version | v1.0         |
-| Author  | Dat Tran Tan |
-| Date    | Sept 2026    |
-
----
+| Item    | Value      |
+| ------- | ---------- |
+| Version | v1.0       |
+| Author  | Dat Tran   |
+| Date    | Sep 2026   |
 
 ## 1. Overview
 
-### 1.1 Purpose
+`clk_div` generates a lower-frequency clock from `clk_i` with runtime enable, division configuration, and glitch-free stopping/reconfiguration.
 
-The `clk_div` IP generates a programmable divided clock from the input clock `clk_i`. The division factor is configured through the `DIV_VALUE` parameter.
+### 1.1 Features
 
-### 1.2 Features
-
-* Parameterized clock division using `DIV_VALUE`.
-* Supports division by any integer, including divide-by-1 bypass.
-* Glitch-free output clock using an integrated clock-gating cell.
-* Synchronized clock activation after reset deassertion.
-
----
+* Configurable division ratio up to `MAX_DIVISION`.
+* Runtime clock enable/disable.
+* Valid/ready configuration handshake.
+* Even and odd division support.
+* Bypass for division values `0` and `1`.
+* Glitch-free clock stopping and reconfiguration using a clock-gating cell.
+* Deterministic clock phase after enable/reconfiguration.
 
 ## 2. Architecture
 
 ### 2.1 Block Diagram
 
-![clk\_div block diagram](clk_div_diagram.png)
 
 ### 2.2 IO Ports
 
-| Group       | Port     | Direction | Width | Description                   |
-| ----------- | -------- | --------- | ----: | ----------------------------- |
-| Clock/Reset | `clk_i`  | Input     |     1 | Input clock signal            |
-| Clock/Reset | `rst_ni` | Input     |     1 | Asynchronous active-low reset |
-| Clock       | `clk_o`  | Output    |     1 | Divided output clock signal   |
+| Port      | Direction | Description                              |
+| --------- | --------- | ---------------------------------------- |
+| `clk_i`   | input     | Source clock.                            |
+| `rst_ni`  | input     | Active-low asynchronous reset.           |
+| `en_i`    | input     | Enables/disables clock generation.       |
+| `div_i`   | input     | Requested division value.                |
+| `valid_i` | input     | Indicates a valid configuration request. |
+| `ready_o` | output    | Indicates that the request is accepted.  |
+| `clk_o`   | output    | Generated/gated clock.                   |
 
-### 2.3 Config Parameters
+### 2.3 Parameters
 
-| Parameter   | Default | Range       | Description                                                                 |
-| ----------- | ------: | ----------- | --------------------------------------------------------------------------- |
-| `DIV_VALUE` |       8 | Integer ≥ 0 | Requested clock division factor. Values below 2 are treated as divide-by-1. |
+| Parameter          | Default | Description                   |
+| ------------------ | ------: | ----------------------------- |
+| `MAX_DIVISION`     |    `16` | Maximum legal division value. |
+| `DEFAULT_DIVISION` |     `2` | Initial division after reset. |
 
----
-Đúng, ý là **`rst_ni` được đưa qua synchronizer**, không phải `clk_i`. Phần 3 nên viết lại theo đúng kiến trúc đó:
+`CNT_WIDTH` is derived from `MAX_DIVISION + 1`.
 
 ## 3. Functional Description
 
-### 3.1 Clock Activation
+### 3.1 Division
 
-The reset signal `rst_ni` is passed through a two-stage synchronizer with a reset value of zero. The synchronizer input is tied to logic high, so `clk_active` is asserted after `rst_ni` is deasserted and the synchronization latency has elapsed.
+|        `div_i` | Operation                 |
+| -------------: | ------------------------- |
+|            `0` | Bypass / divide-by-1      |
+|            `1` | Bypass / divide-by-1      |
+|            `2` | Divide by 2               |
+|            `3` | Divide by 3               |
+|          `...` | Divide by requested value |
+| `MAX_DIVISION` | Divide by `MAX_DIVISION`  |
 
-The synchronized `clk_active` signal is used to:
+Even divisions use the positive-edge divider state. Odd divisions use both positive- and negative-edge state elements to maintain the intended duty-cycle behavior.
 
-* Enable the divider counters.
-* Enable the output clock-gating stage.
+### 3.2 FSM and Clock Control
 
-While `clk_active` is low, the divider counters are held at zero and the output clock remains disabled.
+The FSM contains three states:
 
-### 3.2 Divide-by-1 Mode
+* `StIdle`: clock stopped, counter held at zero, configuration can be loaded.
+* `StFunc`: normal clock generation using the active configuration.
+* `StWait`: completes the current period before stopping or reconfiguring.
 
-When `DIV_VALUE < 2`, the effective division factor is forced to one.
+`cnt_q == 0` is the defined safe clock boundary. Clock stopping or reconfiguration is performed only at this boundary.
 
-The divider is bypassed:
+### 3.3 Configuration and Reset
 
-```text
-clk_div = clk_i
-```
-
-The bypassed clock still passes through the output clock-gating stage. A simulation warning is generated when `DIV_VALUE < 2`.
-
-### 3.3 Even Division Mode
-
-For an even division factor, a single positive-edge counter is used. The counter increments from zero to `DIV-1` and then wraps to zero.
-
-The internal divided clock is generated by comparing `cnt_q` with `HALF`:
+Configuration uses a valid/ready handshake:
 
 ```text
-clk_div = 1  if cnt_q < HALF
-          0  otherwise
+valid_i && ready_o
 ```
 
-This produces equal high and low portions of the divided clock.
+The requester must hold `valid_i` and `div_i` stable until the request is accepted.
 
-### 3.4 Odd Division Mode
+A changed division value during operation is applied only after the current clock period is safely completed and the clock gate is disabled.
 
-For an odd division factor, two counters are used:
-
-* `cnt_p_q`: counter clocked on the positive edge of `clk_i`.
-* `cnt_n_q`: counter clocked on the negative edge of `clk_i`.
-
-Both counters increment from zero to `DIV-1` and wrap to zero.
-
-The corresponding clock-high signals are:
+After asynchronous reset:
 
 ```text
-p_high = (cnt_p_q < HALF)
-n_high = (cnt_n_q < HALF)
+state_q = StIdle
+cnt_q   = 0
+div_q   = DEFAULT_DIVISION
+clk_o   = 0
 ```
 
-The internal divided clock is generated as:
-
-```text
-clk_div = p_high & n_high
-```
-
-Using both clock edges allows an odd division factor to produce a more balanced clock waveform than a divider based only on one edge.
-
-### 3.5 Output Clock Gating
-
-The internally generated `clk_div` is connected to the clock input of the `clk_gate` instance. The synchronized `clk_active` signal drives the gate enable.
-
-The final output clock is generated by the clock-gating stage:
-
-```text
-clk_o = clk_gate(clk_div, clk_active)
-```
-
-The `clk_gate` implementation is expected to provide glitch-free clock gating appropriate for the target technology.
-
-
----
+Illegal division values above `MAX_DIVISION` shall be flagged by assertions.
 
 ## 4. Usage
 
 ### 4.1 Integration Guide
 
-* Connect the input clock to `clk_i`.
-* Connect the asynchronous active-low reset to `rst_ni`.
-* Connect `clk_o` to the destination clock input.
-* Configure the clock division factor using the `DIV_VALUE` parameter.
-* When `DIV_VALUE < 2`, the effective division factor is one and the divider operates in bypass mode.
-* The output clock remains disabled while the synchronized `clk_active` path is inactive after reset.
+* Connect `clk_i` to the source clock.
+* Connect `rst_ni` to the active-low asynchronous reset.
+* Use `en_i` to enable or disable clock generation.
+* Provide `div_i` through the valid/ready configuration interface.
+* Treat `clk_o` as a generated clock in synthesis and timing analysis.
+* Implement `clk_gate` using the target technology's clock-gating cell or equivalent clock-aware structure.
+* Preserve the clock-generation and gating logic during implementation.
 
 ### 4.2 Operation Guide
 
-* This IP does not require any operation sequence.
-
----
+1. Apply reset; `clk_o` remains low.
+2. Provide `div_i` with `valid_i = 1`.
+3. Wait for `ready_o` to accept the configuration.
+4. Assert `en_i` to start clock generation.
+5. To disable, deassert `en_i`; the current period is completed if necessary before stopping.
+6. To reconfigure, provide a new `div_i`; the divider safely completes the current period before applying the new configuration.
 
 ## 5. Verification
 
-The `clk_div` IP is verified using a self-checking testbench with multiple `DIV_VALUE` configurations running concurrently. The testbench checks that the output clock is known after reset and that its measured period matches the expected division ratio.
+## 5. Verification
 
-| Test            | Status | Description                                  |
-| --------------- | ------ | -------------------------------------------- |
-| Reset           | PASS   | Verify `clk_o` is known after reset release. |
-| `DIV_VALUE = 1` | PASS   | Verify divide-by-1 bypass behavior.          |
-| `DIV_VALUE = 2` | PASS   | Verify divide-by-2 clock period.             |
-| `DIV_VALUE = 3` | PASS   | Verify odd division clock period.            |
-| `DIV_VALUE = 4` | PASS   | Verify even division clock period.           |
-| `DIV_VALUE = 5` | PASS   | Verify odd division clock period.            |
-| `DIV_VALUE = 7` | PASS   | Verify odd division clock period.            |
-
----
+| Test               | Status | Description                                                |
+|--------------------|--------|------------------------------------------------------------|
+| Reset              | PASS   | Verifies reset and default clock behavior.                 |
+| Multiple divisors  | PASS   | Verifies all supported division ratios.                    |
+| Configure          | PASS   | Verifies valid/ready configuration handshake.              |
+| Transition divisor | PASS   | Verifies safe transitions between divisors.                |
+| Enable/Disable     | PASS   | Verifies safe clock start and stop.                        |
+| Reconfiguration    | PASS   | Verifies configuration changes during operation.           |
+| Corner cases       | PASS   | Verifies minimum, maximum, and boundary conditions.        |
+| Stress             | PASS   | Verifies random configuration and enable/disable sequences.|
 
 ## 6. Synthesis
 
-| Metric     |    Result |
-| ---------- | --------: |
-| Library    | Nangate45 |
-| Frequency  |   100 MHz |
-| Cell Count |        20 |
-| Cell Area  |    59.318 |
-| WNS        |  +9.07 ns |
+| Item       | Value                  |
+| ---------- | ---------------------- |
+| Library    | NangateOpenCellLibrary |
+| Frequency  | 100MHz                 |
+| Cell Count | 143                    |
+| Cell Area  | 222.376                |
+| WNS        | 0.00                   |
 
----
+## 7. Notes
 
-## 7. Note
+* `MAX_DIVISION >= 1`.
+* `DEFAULT_DIVISION` must be a legal configuration.
+* `div_i` must not silently truncate an out-of-range value.
+* `clk_gate` must be mapped to a technology-specific clock-gating cell.
+* Clock-generation logic is implementation-sensitive and should be preserved during synthesis/implementation.
+* Appropriate generated-clock constraints are required for timing analysis.
 

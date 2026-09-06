@@ -9,16 +9,18 @@
 #------------------------------------------------------------------------------
 
 # Target operating frequency [MHz]
-set TARGET_FREQUENCY 100
+set CLOCK_FREQUENCY 100
 
 # Fraction of the target clock period available to the IP implementation.
 set CLOCK_DERATE 1.0
 
 # Clock period [ns]
-set CLOCK_PERIOD [expr {1000.0 / $TARGET_FREQUENCY * $CLOCK_DERATE}]
+set CLOCK_PERIOD [expr {1000.0 / $CLOCK_FREQUENCY * $CLOCK_DERATE}]
 
 # Additional infomation, here to match with default value in RTL
-set DIV_VALUE 3
+set IO_DERATE 0.3
+set IO_DELAY [expr {$CLOCK_PERIOD * $IO_DERATE}]
+set DIV_VALUE 2
 
 #------------------------------------------------------------------------------
 # 1. Clock
@@ -29,7 +31,8 @@ create_clock \
     -period $CLOCK_PERIOD \
     [get_ports clk_i]
 
-set_clock_uncertainty 0.05 [get_clocks clk]
+set_clock_uncertainty -setup 0.05 [get_clocks clk]
+set_clock_uncertainty -hold  0.00 [get_clocks clk]
 
 # Optional:
 # set_clock_latency <value> [get_clocks clk]
@@ -40,7 +43,7 @@ set_clock_uncertainty 0.05 [get_clocks clk]
 #------------------------------------------------------------------------------
 
 # Optional:
-create_generated_clock -name clk_div -source [get_ports clk_i] -divide_by $DIV_VALUE [get_ports clk_o]
+create_generated_clock -name clk_o -source [get_ports clk_i] -combinational [get_ports clk_o]
 
 
 #------------------------------------------------------------------------------
@@ -61,11 +64,11 @@ set_ideal_network [get_ports rst_ni]
 #     -group [get_clocks clk] \
 #     -group [get_clocks <other_clk>]
 
-
 #------------------------------------------------------------------------------
 # 5. I/O Delay
 #------------------------------------------------------------------------------
-
+set_input_delay  -clock clk $IO_DELAY [get_ports {en_i div_i valid_i}]
+set_output_delay -clock clk $IO_DELAY [get_ports ready_o] 
 
 #------------------------------------------------------------------------------
 # 6. Maximum Delay
