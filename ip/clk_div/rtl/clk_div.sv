@@ -23,13 +23,19 @@ module clk_div #(
     output logic                 clk_o
 );
 
-  initial begin
-    assert (MAX_DIVISION >= 1)
-      else $error("MAX_DIVISION must be >= 1");
+  generate
+    if (MAX_DIVISION < 1) begin : gen_max_division_assert
+      initial begin
+        $error("MAX_DIVISION must be >= 1");
+      end
+    end
 
-    assert (DEFAULT_DIVISION <= MAX_DIVISION)
-      else $error("DEFAULT_DIVISION must be <= MAX_DIVISION");
-  end
+    if (DEFAULT_DIVISION > MAX_DIVISION) begin : gen_default_division_assert
+      initial begin
+        $error("DEFAULT_DIVISION must be <= MAX_DIVISION");
+      end
+    end
+  endgenerate
 
   typedef enum logic [1:0] {
     StIdle,  // Stop clock, load new config if available
