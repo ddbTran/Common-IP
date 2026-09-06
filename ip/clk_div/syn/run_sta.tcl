@@ -1,0 +1,1 @@
+../../template/syn/run_sta.tcl

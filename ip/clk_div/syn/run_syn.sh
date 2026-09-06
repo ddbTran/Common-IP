@@ -21,8 +21,8 @@ set -euo pipefail
 # Configuration — EDIT PER IP
 #------------------------------------------------------------------------------
 
-SYN_TOP=""        # e.g. "sync_fifo"
-IP_HOME="${IP_HOME}"   # e.g. "${SYNC_FIFO_HOME}" — must be exported
+SYN_TOP="clk_div"        # e.g. "sync_fifo"
+IP_HOME="${CLK_DIV_HOME}"   # e.g. "${SYNC_FIFO_HOME}" — must be exported
                                  # by the top-level set_env.sh (see step 1 above)
 
 #------------------------------------------------------------------------------

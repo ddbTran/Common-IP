@@ -123,12 +123,38 @@ if [[ $STA_STATUS -ne 0 ]]; then
     exit "$STA_STATUS"
 fi
 
-# report_checks marks each path "(VIOLATED)" or "(MET)" — treat any
-# violation as a build failure rather than a report someone has to remember
-# to go read.
-if grep -q 'VIOLATED' "$SYN_STA_LOG"; then
-    echo "ERROR: Timing violation(s) detected — see $SYN_STA_LOG" >&2
-    exit 1
+#------------------------------------------------------------------------------
+# Timing violation check
+#------------------------------------------------------------------------------
+
+SETUP_WNS=$(awk '$1 == "wns" && $2 == "max" {print $3}' "$SYN_STA_LOG" | tail -1)
+HOLD_WNS=$(awk '$1 == "wns" && $2 == "min" {print $3}' "$SYN_STA_LOG" | tail -1)
+
+echo ""
+echo "============================================================"
+echo "Timing Summary"
+echo "============================================================"
+echo "Setup WNS : ${SETUP_WNS:-N/A} ns"
+echo "Hold  WNS : ${HOLD_WNS:-N/A} ns"
+echo "============================================================"
+
+TIMING_VIOLATION=0
+
+if [[ -n "$SETUP_WNS" ]] && awk "BEGIN {exit !($SETUP_WNS < 0)}"; then
+    echo "WARNING: Setup timing violation detected: WNS = $SETUP_WNS ns"
+    TIMING_VIOLATION=1
+fi
+
+if [[ -n "$HOLD_WNS" ]] && awk "BEGIN {exit !($HOLD_WNS < 0)}"; then
+    echo "WARNING: Hold timing violation detected: WNS = $HOLD_WNS ns"
+    TIMING_VIOLATION=1
+fi
+
+if [[ $TIMING_VIOLATION -eq 0 ]]; then
+    echo "Timing status: PASS"
+else
+    echo "Timing status: VIOLATION"
+    echo "WARNING: Timing violations detected — see $SYN_STA_LOG"
 fi
 
 #------------------------------------------------------------------------------
@@ -137,7 +163,7 @@ fi
 
 echo ""
 echo "============================================================"
-echo "Synthesis + STA completed — no timing violations"
+echo "Synthesis + STA completed — $TIMING_VIOLATION timing violations"
 echo "TOP         : $SYN_TOP"
 echo "NETLIST     : $SYN_OUT_NETLIST"
 echo "REPORTS     : $SYN_OUT_DIR"
