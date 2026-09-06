@@ -1,7 +1,7 @@
 // ============================================================================
 // Module      : clk_div
 // Author      : Dat Tran Tan <dat.trantan.business@gmail.com>
-// Description : Configurable clock divider
+// Description : Runtime configurable clock divider
 // ============================================================================
 
 `timescale 1ns/1ps
