@@ -7,10 +7,8 @@
 `timescale 1ns/1ps
 
 module clk_div #(
-    parameter int unsigned MAX_DIVISION     = 16,
-    parameter int unsigned DEFAULT_DIVISION = 2,
-
-    localparam int unsigned CNT_WIDTH       = $clog2(MAX_DIVISION+1)
+    parameter int unsigned CNT_WIDTH        = 4,
+    parameter int unsigned DEFAULT_DIVISION = 2
 ) (
     input  logic                 clk_i,
     input  logic                 rst_ni,
@@ -23,17 +21,14 @@ module clk_div #(
     output logic                 clk_o
 );
 
+  // Parameter checks
   generate
-    if (MAX_DIVISION < 1) begin : gen_max_division_assert
-      initial begin
-        $error("MAX_DIVISION must be >= 1");
-      end
+    if (CNT_WIDTH < 1) begin : gen_cnt_width_assert
+      initial $error("CNT_WIDTH must be >= 1");
     end
 
-    if (DEFAULT_DIVISION > MAX_DIVISION) begin : gen_default_division_assert
-      initial begin
-        $error("DEFAULT_DIVISION must be <= MAX_DIVISION");
-      end
+    if (DEFAULT_DIVISION < 1 || DEFAULT_DIVISION >= (1 << CNT_WIDTH)) begin : gen_default_division_assert
+      initial $error("DEFAULT_DIVISION must be in range [1, 2^CNT_WIDTH-1]");
     end
   endgenerate
 
@@ -53,6 +48,7 @@ module clk_div #(
   logic toggle_en;
   logic icg_en;
 
+  // FSM next state
   always_comb begin
     state_d = state_q;
     unique case (state_q)
@@ -77,6 +73,7 @@ module clk_div #(
     endcase
   end
 
+  // FSM output
   always_comb begin
     cnt_d     = cnt_q;
     div_d     = div_q;
@@ -188,5 +185,5 @@ module clk_div #(
     .en_i(icg_en),
     .clk_o(clk_o)
   );
-  
-  endmodule
+
+endmodule

@@ -2,11 +2,11 @@
 
 > Configurable clock divider with glitch-free clock gating and runtime reconfiguration.
 
-| Item    | Value      |
-| ------- | ---------- |
-| Version | v1.0       |
-| Author  | Dat Tran   |
-| Date    | Sep 2026   |
+| Item    | Value    |
+| ------- | -------- |
+| Version | v1.0     |
+| Author  | Dat Tran |
+| Date    | Sep 2026 |
 
 ## 1. Overview
 
@@ -14,7 +14,7 @@
 
 ### 1.1 Features
 
-* Configurable division ratio up to `MAX_DIVISION`.
+* Configurable division ratio up to `2^CNT_WIDTH - 1`.
 * Runtime clock enable/disable.
 * Valid/ready configuration handshake.
 * Even and odd division support.
@@ -26,6 +26,7 @@
 
 ### 2.1 Block Diagram
 
+![Clock Divider Block Diagram](docs/clk_div_diagram.png)
 
 ### 2.2 IO Ports
 
@@ -41,25 +42,33 @@
 
 ### 2.3 Parameters
 
-| Parameter          | Default | Description                   |
-| ------------------ | ------: | ----------------------------- |
-| `MAX_DIVISION`     |    `16` | Maximum legal division value. |
-| `DEFAULT_DIVISION` |     `2` | Initial division after reset. |
+| Parameter          | Default | Description                                |
+| ------------------ | ------: | ------------------------------------------ |
+| `CNT_WIDTH`        |       4 | Width of the division counter and `div_i`. |
+| `DEFAULT_DIVISION` |       2 | Initial division after reset.              |
 
-`CNT_WIDTH` is derived from `MAX_DIVISION + 1`.
+The maximum supported division value is:
+
+```text
+2^CNT_WIDTH - 1
+```
+
+`DEFAULT_DIVISION` must be in the range `1` to `2^CNT_WIDTH - 1`.
 
 ## 3. Functional Description
 
 ### 3.1 Division
 
-|        `div_i` | Operation                 |
-| -------------: | ------------------------- |
-|            `0` | Bypass / divide-by-1      |
-|            `1` | Bypass / divide-by-1      |
-|            `2` | Divide by 2               |
-|            `3` | Divide by 3               |
-|          `...` | Divide by requested value |
-| `MAX_DIVISION` | Divide by `MAX_DIVISION`  |
+|         `div_i` | Operation                 |
+| --------------: | ------------------------- |
+|             `0` | Bypass / divide-by-1      |
+|             `1` | Bypass / divide-by-1      |
+|             `2` | Divide by 2               |
+|             `3` | Divide by 3               |
+|           `...` | Divide by requested value |
+| `2^CNT_WIDTH-1` | Divide by maximum value   |
+
+`div_i = 0` is normalized internally to `1`.
 
 Even divisions use the positive-edge divider state. Odd divisions use both positive- and negative-edge state elements to maintain the intended duty-cycle behavior.
 
@@ -68,7 +77,7 @@ Even divisions use the positive-edge divider state. Odd divisions use both posit
 The FSM contains three states:
 
 * `StIdle`: clock stopped, counter held at zero, configuration can be loaded.
-* `StFunc`: normal clock generation using the active configuration.
+* `StFunc`: normal clock generation.
 * `StWait`: completes the current period before stopping or reconfiguring.
 
 `cnt_q == 0` is the defined safe clock boundary. Clock stopping or reconfiguration is performed only at this boundary.
@@ -94,7 +103,7 @@ div_q   = DEFAULT_DIVISION
 clk_o   = 0
 ```
 
-Illegal division values above `MAX_DIVISION` shall be flagged by assertions.
+Illegal parameter values are flagged by assertions during elaboration.
 
 ## 4. Usage
 
@@ -119,18 +128,16 @@ Illegal division values above `MAX_DIVISION` shall be flagged by assertions.
 
 ## 5. Verification
 
-## 5. Verification
-
-| Test               | Status | Description                                                |
-|--------------------|--------|------------------------------------------------------------|
-| Reset              | PASS   | Verifies reset and default clock behavior.                 |
-| Multiple divisors  | PASS   | Verifies all supported division ratios.                    |
-| Configure          | PASS   | Verifies valid/ready configuration handshake.              |
-| Transition divisor | PASS   | Verifies safe transitions between divisors.                |
-| Enable/Disable     | PASS   | Verifies safe clock start and stop.                        |
-| Reconfiguration    | PASS   | Verifies configuration changes during operation.           |
-| Corner cases       | PASS   | Verifies minimum, maximum, and boundary conditions.        |
-| Stress             | PASS   | Verifies random configuration and enable/disable sequences.|
+| Test              | Status   | Description                                                                                  |
+| ----------------- | -------- | -------------------------------------------------------------------------------------------- |
+| Reset             | PASS     | Verifies asynchronous reset and default configuration.                                       |
+| Division          | PASS     | Verifies all legal division values, including divide-by-1 bypass.                            |
+| Configuration     | PASS     | Verifies valid/ready handshake, unchanged requests, and consecutive requests.                |
+| Reconfiguration   | PASS     | Verifies safe transitions between different division values.                                 |
+| Enable/Disable    | PASS     | Verifies safe clock start, stop, and restart at different source-clock offsets.              |
+| Clock Integrity   | PASS     | Verifies output period, pulse width, startup phase, and optional duty-cycle checks.          |
+| Corner Cases      | PASS     | Verifies reset during clock activity, stop/reconfiguration overlap, and boundary conditions. |
+| Random Regression | PASS     | Verifies randomized configuration and enable/disable sequences.                              |
 
 ## 6. Synthesis
 
@@ -144,8 +151,9 @@ Illegal division values above `MAX_DIVISION` shall be flagged by assertions.
 
 ## 7. Notes
 
-* `MAX_DIVISION >= 1`.
+* `CNT_WIDTH >= 1`.
 * `DEFAULT_DIVISION` must be a legal configuration.
+* `div_i = 0` is normalized to `1` and provides divide-by-1 behavior.
 * `div_i` must not silently truncate an out-of-range value.
 * `clk_gate` must be mapped to a technology-specific clock-gating cell.
 * Clock-generation logic is implementation-sensitive and should be preserved during synthesis/implementation.
