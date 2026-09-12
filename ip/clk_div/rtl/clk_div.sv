@@ -1,16 +1,14 @@
 // ============================================================================
 // Module      : clk_div
 // Author      : Dat Tran Tan <dat.trantan.business@gmail.com>
-// Description : Configurable clock divider
+// Description : Runtime configurable clock divider
 // ============================================================================
 
 `timescale 1ns/1ps
 
 module clk_div #(
-    parameter int unsigned MAX_DIVISION     = 16,
-    parameter int unsigned DEFAULT_DIVISION = 2,
-
-    localparam int unsigned CNT_WIDTH       = $clog2(MAX_DIVISION+1)
+    parameter int unsigned CNT_WIDTH        = 4,
+    parameter int unsigned DEFAULT_DIVISION = 2
 ) (
     input  logic                 clk_i,
     input  logic                 rst_ni,
@@ -23,13 +21,16 @@ module clk_div #(
     output logic                 clk_o
 );
 
-  initial begin
-    assert (MAX_DIVISION >= 1)
-      else $error("MAX_DIVISION must be >= 1");
+  // Parameter checks
+  generate
+    if (CNT_WIDTH < 1) begin : gen_cnt_width_assert
+      initial $error("CNT_WIDTH must be >= 1");
+    end
 
-    assert (DEFAULT_DIVISION <= MAX_DIVISION)
-      else $error("DEFAULT_DIVISION must be <= MAX_DIVISION");
-  end
+    if (DEFAULT_DIVISION < 1 || DEFAULT_DIVISION >= (1 << CNT_WIDTH)) begin : gen_default_division_assert
+      initial $error("DEFAULT_DIVISION must be in range [1, 2^CNT_WIDTH-1]");
+    end
+  endgenerate
 
   typedef enum logic [1:0] {
     StIdle,  // Stop clock, load new config if available
@@ -47,6 +48,7 @@ module clk_div #(
   logic toggle_en;
   logic icg_en;
 
+  // FSM next state
   always_comb begin
     state_d = state_q;
     unique case (state_q)
@@ -71,6 +73,7 @@ module clk_div #(
     endcase
   end
 
+  // FSM output
   always_comb begin
     cnt_d     = cnt_q;
     div_d     = div_q;
@@ -182,5 +185,5 @@ module clk_div #(
     .en_i(icg_en),
     .clk_o(clk_o)
   );
-  
-  endmodule
+
+endmodule

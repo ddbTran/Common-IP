@@ -1,0 +1,63 @@
+name: ip-regression-test
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - "ip/**"
+  workflow_dispatch:
+
+jobs:
+  build-and-check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build toolchain
+        run: make build
+
+      - name: Detect changed IPs
+        shell: bash
+        run: |
+          git diff --name-only \
+            "${{ github.event.before }}" \
+            "${{ github.sha }}" \
+            -- 'ip/*' \
+            | awk -F/ 'NF >= 2 {print $2}' \
+            | sort -u > changed_ips.txt
+
+          echo "Changed IPs:"
+          cat changed_ips.txt
+
+      - name: Run simulation and synthesis
+        shell: bash
+        run: |
+          source set_env.sh
+
+          while IFS= read -r ip; do
+            [[ -z "$ip" ]] && continue
+
+            echo "========================================"
+            echo "Testing IP: $ip"
+            echo "========================================"
+
+            (
+              cd "ip/$ip/sim"
+              source run_sim.sh
+            )
+
+            (
+              cd "ip/$ip/syn"
+              source run_syn.sh
+            )
+
+          done < changed_ips.txt
