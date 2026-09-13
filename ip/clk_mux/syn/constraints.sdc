@@ -83,16 +83,20 @@ set_ideal_network [get_ports i_reset2]
 #     -asynchronous \
 #     -group [get_clocks clk] \
 #     -group [get_clocks <other_clk>]
+set_clock_groups -asynchronous \
+    -group [get_clocks i_clk1] \
+    -group [get_clocks i_clk2]
 
+set_clock_groups -physically_exclusive \
+    -group [get_clocks o_clk1] \
+    -group [get_clocks o_clk2]
 
 #------------------------------------------------------------------------------
 # 5. I/O Delay
 #------------------------------------------------------------------------------
 
-set_input_delay \
-    1 \
-    -clock [get_clocks i_clk2] \
-    [get_ports i_sel]
+set_input_delay 1 -clock [get_clocks i_clk1] -add_delay [get_ports i_sel]
+set_input_delay 1 -clock [get_clocks i_clk2] -add_delay [get_ports i_sel]
 
 #------------------------------------------------------------------------------
 # 6. Maximum Delay
