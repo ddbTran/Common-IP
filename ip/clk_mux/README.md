@@ -10,11 +10,12 @@
 
 ## 1. Overview
 
-The `clk_mux` is a highly reliable, glitch-free clock multiplexer designed to safely switch between two asynchronous clock domains. By utilizing a cross-coupled feedback topology, it guarantees that the output clock remains clean and free of spurious edges (glitches) even when the clock select signal toggles randomly or when the clock domains operate at entirely different frequencies.
+The `clk_mux` is a highly reliable, glitch-free clock multiplexer designed to safely switch between two asynchronous clock domains. By utilizing a cross-coupled feedback topology combined with multi-stage synchronizers and clock gating cells, it guarantees that the output clock remains clean and free of spurious edges (glitches) or metastability, even when the clock select signal toggles randomly across entirely different frequencies.
 
 ### 1.1 Features
 
-- **Glitch-Free Switching:** Ensures safe transitions between two asynchronous clock sources without generating runt pulses or glitches on the output.
+- **Glitch-Free Switching:** Uses integrated clock gating (ICG) to ensure safe transitions between two asynchronous clock sources without generating runt pulses.
+- **Metastability Protection:** Incorporates 2-stage synchronizers on the cross-coupled feedback paths to safely handle asynchronous `i_sel` toggling.
 - **Dual Independent Resets:** Features dedicated active-low asynchronous resets for each clock domain, supporting staggered and independent reset sequencing.
 - **Fully Asynchronous Support:** Safely handles clock sources with vastly different periods and phases.
 
@@ -43,18 +44,19 @@ The `clk_mux` is a highly reliable, glitch-free clock multiplexer designed to sa
 
 ## 3. Functional Description
 
-### 3.1 Cross-Coupled Feedback (Glitch Prevention)
+### 3.1 Cross-Coupled Feedback & Synchronization (Metastability Prevention)
 
-The core mechanism of the `clk_mux` relies on the combinational logic signals `in_and1` and `in_and2`. The selection of a new clock is gated by the inverted state of the previously active clock's synchronization flop (`!out_flop2` or `!out_flop1`). This interdependent feedback loop mathematically guarantees that one clock path is entirely disabled and flushed before the new clock path is allowed to propagate to the output OR-gate.
+The core mechanism of the `clk_mux` relies on an interdependent feedback loop. The selection of a new clock is gated by the inverted state of the previously active clock's synchronization flop (`!out_flop2` or `!out_flop1`). To prevent metastability when crossing clock domains, these gated selection signals (`in_and1`, `in_and2`) are passed through 2-stage synchronizers (`synchronizer1`, `synchronizer2`) before being registered. This guarantees that one clock path is entirely disabled and flushed before the new clock path is allowed to propagate.
 
-### 3.2 Clock Selection Behavior
+### 3.2 Clock Gating and Selection Behavior
 
-- When `i_sel = 0`: The `i_clk2` path is disabled. `out_flop1` samples a high state, allowing `i_clk1` to pass through `out_and1` to `o_clk`.
-- When `i_sel = 1`: The `i_clk1` path is disabled. `out_flop2` samples a high state, allowing `i_clk2` to pass through `out_and2` to `o_clk`.
+To ensure absolute glitch-free operation, the synchronized enable signals are fed into dedicated clock gating modules (`clk_gate1`, `clk_gate2`). 
+- When `i_sel = 0`: The `i_clk2` path is disabled via its clock gate. `out_sync1` goes high, enabling `clk_gate1` to cleanly pass `i_clk1` to the output OR-gate.
+- When `i_sel = 1`: The `i_clk1` path is disabled. `out_sync2` goes high, enabling `clk_gate2` to cleanly pass `i_clk2` to the output OR-gate.
 
 ### 3.3 Independent Domain Resets
 
-The module contains two independent `always` blocks driven by their respective asynchronous resets (`i_reset1` and `i_reset2`). This allows the SoC to safely reset one clock domain while the other is actively transmitting to `o_clk`, which is a common scenario during staggered wake-up sequences across power domains.
+The module contains distinct sequential blocks and synchronizers driven by their respective asynchronous resets (`i_reset1` and `i_reset2`). This allows the SoC to safely reset one clock domain while the other is actively transmitting to `o_clk`, which is a common scenario during staggered wake-up sequences across power domains.
 
 ## 4. Usage
 
@@ -65,7 +67,7 @@ The module contains two independent `always` blocks driven by their respective a
 
 ### 4.2 Operation Guide
 
-To switch clocks during runtime, toggle the `i_sel` pin. The IP automatically handles the safe de-assertion of the current clock, waits for the logic to clear, and seamlessly asserts the new clock. Users do not need to pause or gate the clocks externally before toggling `i_sel`.
+To switch clocks during runtime, toggle the `i_sel` pin. The IP automatically handles the safe de-assertion of the current clock, waits for the logic to clear through the synchronizers, and seamlessly asserts the new clock. Users do not need to pause or gate the clocks externally before toggling `i_sel`.
 
 ## 5. Verification
 
@@ -81,8 +83,8 @@ To switch clocks during runtime, toggle the `i_sel` pin. The IP automatically ha
 |---|---|
 | Library | Nangate45 |
 | Frequency | 100 MHz (`i_clk1`) / 62.5 MHz (`i_clk2`) |
-| Cell Count | 9 |
-| Cell Area | 30.324 |
+| Cell Count | 17 |
+| Cell Area | 52.136 |
 | WNS | 0.00 ns |
 
 ## 7. Notes

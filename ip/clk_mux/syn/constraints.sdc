@@ -37,8 +37,10 @@ create_clock \
     -period $CLOCK_PERIOD_2 \
     [get_ports i_clk2]
 
-set_clock_uncertainty 0.05 [get_clocks i_clk1]
-set_clock_uncertainty 0.05 [get_clocks i_clk2]
+set_clock_uncertainty -setup 0.05 [get_clocks i_clk1]
+set_clock_uncertainty -setup 0.05 [get_clocks i_clk2]
+set_clock_uncertainty -hold  0.00 [get_clocks i_clk1]
+set_clock_uncertainty -hold  0.00 [get_clocks i_clk2]
 
 # Optional:
 # set_clock_latency <value> [get_clocks clk]

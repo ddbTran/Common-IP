@@ -50,24 +50,24 @@ module tb_clk_mux;
         i_reset2 = 1;   // Release reset2 18ns later
 
         // Let it run with i_clk1 (i_sel = 0)
-        #50;
+        #150; // Tăng delay để bù trừ độ trễ qua synchronizer
 
         // 3. Switch to i_clk2 (i_sel = 1)
         #12;
         i_sel = 1;
-        #100;
+        #200; // Tăng thời gian chạy để quan sát sau khi switch
 
         // 4. Test asserting reset1 while running on domain 2
         #15;
         i_reset1 = 0;   // Assert reset1 unexpectedly
         #23;
         i_reset1 = 1;   // Release reset1
-        #50;
+        #150;
 
         // 5. Switch back to i_clk1 (i_sel = 0)
         #17;
         i_sel = 0;
-        #100;
+        #200;
 
         // 6. Test asserting reset2 while running on domain 1
         #27;
@@ -75,12 +75,12 @@ module tb_clk_mux;
         #19;
         i_reset2 = 1;   // Release reset2
 
-        #100;
+        #200;
         $display("Simulation Finished!");
         $finish;
     end
 
-    // --- Waveform Dumping (Optional but recommended) ---
+    // --- Waveform Dumping ---
     initial begin
         $dumpfile("tb_clk_mux.fst");
         $dumpvars(0, tb_clk_mux);
