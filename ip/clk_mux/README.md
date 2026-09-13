@@ -79,11 +79,11 @@ To switch clocks during runtime, toggle the `i_sel` pin. The IP automatically ha
 
 | Item | Value |
 |---|---|
-| Library | TBD |
+| Library | Nangate45 |
 | Frequency | 100 MHz (`i_clk1`) / 62.5 MHz (`i_clk2`) |
-| Cell Count | TBD |
-| Cell Area | TBD |
-| WNS | TBD |
+| Cell Count | 7 |
+| Cell Area | 19.684 |
+| WNS | 0.00 ns |
 
 ## 7. Notes
 
