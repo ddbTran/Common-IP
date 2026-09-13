@@ -81,13 +81,13 @@ To switch clocks during runtime, toggle the `i_sel` pin. The IP automatically ha
 |---|---|
 | Library | Nangate45 |
 | Frequency | 100 MHz (`i_clk1`) / 62.5 MHz (`i_clk2`) |
-| Cell Count | 7 |
-| Cell Area | 19.684 |
+| Cell Count | 9 |
+| Cell Area | 30.324 |
 | WNS | 0.00 ns |
 
 ## 7. Notes
 
-**Critical STA Constraints (SDC):** 
+**Critical STA Constraints (SDC):**
 When running Synthesis or Static Timing Analysis (STA) on this IP, you must strictly define the clock groups to prevent false violations caused by the cross-coupled feedback paths.
 1. **Input Clocks:** `i_clk1` and `i_clk2` must be defined as `-asynchronous` clock groups.
 2. **Output Clocks:** Two generated clocks should be created on the `o_clk` port (e.g., `o_clk1` and `o_clk2`). These must be defined as `-physically_exclusive` clock groups since they cannot physically exist on the wire simultaneously.
