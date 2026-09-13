@@ -71,8 +71,8 @@ create_generated_clock \
 
 set_ideal_network [get_ports i_clk1]
 set_ideal_network [get_ports i_clk2]
-set_ideal_network [get_ports i_reset]
-
+set_ideal_network [get_ports i_reset1]
+set_ideal_network [get_ports i_reset2]
 
 #------------------------------------------------------------------------------
 # 4. Clock Groups

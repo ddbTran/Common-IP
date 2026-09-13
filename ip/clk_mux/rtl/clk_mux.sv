@@ -8,7 +8,8 @@
 
 module clk_mux (
     // --- Ports ---
-    input  logic i_reset,
+    input  logic i_reset1,
+    input  logic i_reset2,
     input  logic i_clk1,
     input  logic i_clk2,
     input  logic i_sel,
@@ -28,15 +29,15 @@ assign out_and1 = out_flop1 &  i_clk1;
 assign out_and2 = out_flop2 &  i_clk2;
 
 // --- Sequential logic ---
-always @(posedge i_clk1 or negedge i_reset) begin
-    if (!i_reset)
+always @(posedge i_clk1 or negedge i_reset1) begin
+    if (!i_reset1)
         out_flop1 <= 0;
     else
         out_flop1 <= in_and1;
 end
 
-always @(posedge i_clk2 or negedge i_reset) begin
-    if (!i_reset)
+always @(posedge i_clk2 or negedge i_reset2) begin
+    if (!i_reset2)
         out_flop2 <= 0;
     else
         out_flop2 <= in_and2;
