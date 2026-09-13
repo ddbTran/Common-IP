@@ -29,19 +29,25 @@ assign out_and1 = out_flop1 &  i_clk1;
 assign out_and2 = out_flop2 &  i_clk2;
 
 // --- Sequential logic ---
-always @(posedge i_clk1 or negedge i_reset1) begin
-    if (!i_reset1)
-        out_flop1 <= 0;
-    else
-        out_flop1 <= in_and1;
-end
+synchronizer #(
+    .DEPTH(2),
+    .RST_VALUE(1'b0)
+) synchronizer1 (
+    .clk_i(i_clk1),
+    .rst_ni(i_reset1),
+    .data_i(in_and1),
+    .data_o(out_flop1)
+);
 
-always @(posedge i_clk2 or negedge i_reset2) begin
-    if (!i_reset2)
-        out_flop2 <= 0;
-    else
-        out_flop2 <= in_and2;
-end
+synchronizer #(
+    .DEPTH(2),
+    .RST_VALUE(1'b0)
+) synchronizer2 (
+    .clk_i(i_clk2),
+    .rst_ni(i_reset2),
+    .data_i(in_and2),
+    .data_o(out_flop2)
+);
 
 assign o_clk = out_and1 | out_and2;
 
