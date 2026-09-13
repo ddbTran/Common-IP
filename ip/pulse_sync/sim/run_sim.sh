@@ -10,7 +10,7 @@ set -euo pipefail
 #   IP_HOME="${SYNC_FIFO_HOME}"
 #   TOP_MODULE="tb_sync_fifo"
 
-IP_HOME="${SYNC_FIFO_HOME}"
-TOP_MODULE="tb_sync_fifo"
+IP_HOME="${PULSE_SYNC_HOME}"
+TOP_MODULE="tb_pulse_sync"
 
 source $COMMON_IPS_HOME/ip/template/sim/run_sim_common.sh

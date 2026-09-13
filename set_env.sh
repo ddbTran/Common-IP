@@ -21,6 +21,8 @@ export SYNCHRONIZER_HOME="${IP_HOME}/synchronizer"
 export CLK_GATE_HOME="${IP_HOME}/clk_gate"
 export CLK_DIV_HOME="${IP_HOME}/clk_div"
 export CLK_MUX_HOME="${IP_HOME}/clk_mux"
+export PULSE_SYNC_HOME="${IP_HOME}/pulse_sync"
+export RESET_CONTROL_HOME="${IP_HOME}/reset_control"
 
 # ------------------------------------------------------------
 # Tool
