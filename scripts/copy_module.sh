@@ -41,6 +41,7 @@ mkdir -p "${TARGET_DIR}/syn"
 
 rm -f "${TARGET_DIR}/syn/run_syn.tcl"
 rm -f "${TARGET_DIR}/syn/run_sta.tcl"
+rm -f "${TARGET_DIR}/syn/run_syn_common.sh"
 
 ln -s "${TEMPLATE_DIR}/syn/run_syn.tcl" "${TARGET_DIR}/syn/run_syn.tcl"
 ln -s "${TEMPLATE_DIR}/syn/run_sta.tcl" "${TARGET_DIR}/syn/run_sta.tcl"
