@@ -53,12 +53,9 @@ The following table defines the target IP set and its current implementation sta
 | `clk_gate`        | Clock Gating Cell                          |   Done  |   N/A   |   N/A   |
 | `clk_div`         | Programmable clock divider                 |   Done  |   Done  |   Done  |
 | `clk_mux`         | Clock source multiplexer                   | Planned | Planned | Planned |
-| `reset_handshake` | Reset sequencing and handshake logic       | Planned | Planned | Planned |
+| `reset_control`   | Reset sequencing across reset domains      | Planned | Planned | Planned |
 | `synchrnozier`    | Generic clock-domain synchronizer          |   Done  |   N/A   |   N/A   |
-| `2phase_hs`       | Two-phase clock-domain crossing handshake  | Planned | Planned | Planned |
-| `4phase_hs`       | Four-phase clock-domain crossing handshake | Planned | Planned | Planned |
-| `pulse_sync`      | Pulse synchronization across clock domains | Planned | Planned | Planned |
-| `pulse_expand`    | Pulse expansion for CDC transfer           | Planned | Planned | Planned |
+| `pulse_sync`      | Pulse synchronization across clock domains |   Done  |  Done   |  Done   |
 | `rr_arbiter`      | Round-robin arbiter                        | Planned | Planned | Planned |
 | `credit_counter`  | Credit-based flow-control counter          | Planned | Planned | Planned |
 | `token_bucket`    | Token-bucket rate limiter                  | Planned | Planned | Planned |
