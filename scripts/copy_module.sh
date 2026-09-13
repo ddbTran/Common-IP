@@ -39,6 +39,8 @@ mkdir -p "${TARGET_DIR}/rtl"
 mkdir -p "${TARGET_DIR}/sim"
 mkdir -p "${TARGET_DIR}/syn"
 
+rm -f "${TARGET_DIR}/sim/run_sim_common.sh"
+
 rm -f "${TARGET_DIR}/syn/run_syn.tcl"
 rm -f "${TARGET_DIR}/syn/run_sta.tcl"
 rm -f "${TARGET_DIR}/syn/run_syn_common.sh"
