@@ -45,21 +45,21 @@ The long-term goal is to build a reliable collection of common RTL building bloc
 
 The following table defines the target IP set and its current implementation status.
 
-| Name              | Description                                |   RTL   |   SIM   |   SYN   |
-| ----------------- | ------------------------------------------ | :-----: | :-----: | :-----: |
-| `sync_fifo`       | Synchronous single-clock FIFO              |   Done  |   Done  |   Done  |
-| `gray_fifo`       | FIFO using Gray-coded pointers             | Planned | Planned | Planned |
-| `ring_fifo`       | Ring-buffer based FIFO                     | Planned | Planned | Planned |
-| `clk_gate`        | Clock Gating Cell                          |   Done  |   N/A   |   N/A   |
-| `clk_div`         | Programmable clock divider                 |   Done  |   Done  |   Done  |
-| `clk_mux`         | Clock source multiplexer                   | Planned | Planned | Planned |
-| `reset_control`   | Reset sequencing across reset domains      | Planned | Planned | Planned |
-| `synchrnozier`    | Generic clock-domain synchronizer          |   Done  |   N/A   |   N/A   |
-| `pulse_sync`      | Pulse synchronization across clock domains |   Done  |  Done   |  Done   |
-| `rr_arbiter`      | Round-robin arbiter                        | Planned | Planned | Planned |
-| `credit_counter`  | Credit-based flow-control counter          | Planned | Planned | Planned |
-| `token_bucket`    | Token-bucket rate limiter                  | Planned | Planned | Planned |
-| `apb_slave`       | APB slave interface building block         | Planned | Planned | Planned |
+| Name               | Description                                            |   RTL   |   SIM   |   SYN   |
+| ------------------ | ------------------------------------------------------ | :-----: | :-----: | :-----: |
+| `sync_fifo`        | Synchronous single-clock FIFO                          |   Done  |   Done  |   Done  |
+| `gray_fifo`        | Asynchronous FIFO using Gray-coded pointers            | Planned | Planned | Planned |
+| `ring_fifo`        | Asynchronous ring-buffer FIFO using token/status slots | Planned | Planned | Planned |
+| `clk_gate`         | Clock gating cell                                      |   Done  |   N/A   |   N/A   |
+| `clk_div`          | Programmable runtime clock divider                     |   Done  |   Done  |   Done  |
+| `clk_mux`          | Glitch-free clock source multiplexer                   |   Done  |   Done  |   Done  |
+| `synchronizer`     | Generic level synchronizer across clock domains        |   Done  |   N/A   |   N/A   |
+| `pulse_sync`       | Pulse/event synchronization across clock domains       |   Done  |   Done  |   Done  |
+| `reset_control`    | Reset sequencing across multiple reset domains         | Planned | Planned | Planned |
+| `rr_arbiter`       | Round-robin arbiter                                    | Planned | Planned | Planned |
+| `wdt`              | Watchdog timer with three clock domains                |   Done  |   Done  |   Done  |
+| `apb_csr`          | APB slave interface exposing control/status registers  | Planned | Planned | Planned |
+| `async_apb_bridge` | APB transaction bridge across clock domains            |   Done  |   Done  |   Done  |
 
 ### Status Definition
 
