@@ -33,6 +33,7 @@ jobs:
             "${{ github.sha }}" \
             -- 'ip/*' \
             | awk -F/ 'NF >= 2 {print $2}' \
+            | grep -v '^template$' \
             | sort -u > changed_ips.txt
 
           echo "Changed IPs:"

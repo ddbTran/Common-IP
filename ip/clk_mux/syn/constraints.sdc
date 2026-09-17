@@ -37,8 +37,10 @@ create_clock \
     -period $CLOCK_PERIOD_2 \
     [get_ports i_clk2]
 
-set_clock_uncertainty 0.05 [get_clocks i_clk1]
-set_clock_uncertainty 0.05 [get_clocks i_clk2]
+set_clock_uncertainty -setup 0.05 [get_clocks i_clk1]
+set_clock_uncertainty -setup 0.05 [get_clocks i_clk2]
+set_clock_uncertainty -hold  0.00 [get_clocks i_clk1]
+set_clock_uncertainty -hold  0.00 [get_clocks i_clk2]
 
 # Optional:
 # set_clock_latency <value> [get_clocks clk]
@@ -71,8 +73,8 @@ create_generated_clock \
 
 set_ideal_network [get_ports i_clk1]
 set_ideal_network [get_ports i_clk2]
-set_ideal_network [get_ports i_reset]
-
+set_ideal_network [get_ports i_reset1]
+set_ideal_network [get_ports i_reset2]
 
 #------------------------------------------------------------------------------
 # 4. Clock Groups
@@ -83,16 +85,20 @@ set_ideal_network [get_ports i_reset]
 #     -asynchronous \
 #     -group [get_clocks clk] \
 #     -group [get_clocks <other_clk>]
+set_clock_groups -asynchronous \
+    -group [get_clocks i_clk1] \
+    -group [get_clocks i_clk2]
 
+set_clock_groups -physically_exclusive \
+    -group [get_clocks o_clk1] \
+    -group [get_clocks o_clk2]
 
 #------------------------------------------------------------------------------
 # 5. I/O Delay
 #------------------------------------------------------------------------------
 
-set_input_delay \
-    1 \
-    -clock [get_clocks i_clk2] \
-    [get_ports i_sel]
+set_input_delay 1 -clock [get_clocks i_clk1] -add_delay [get_ports i_sel]
+set_input_delay 1 -clock [get_clocks i_clk2] -add_delay [get_ports i_sel]
 
 #------------------------------------------------------------------------------
 # 6. Maximum Delay
