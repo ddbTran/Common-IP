@@ -57,9 +57,9 @@ The following table defines the target IP set and its current implementation sta
 | `pulse_sync`       | Pulse/event synchronization across clock domains       |   Done  |   Done  |   Done  |
 | `reset_control`    | Reset sequencing across multiple reset domains         | Planned | Planned | Planned |
 | `rr_arbiter`       | Round-robin arbiter                                    | Planned | Planned | Planned |
-| `wdt`              | Watchdog timer with three clock domains                |   Done  |   Done  |   Done  |
+| `wdt`              | Watchdog timer with three clock domains                | Planned | Planned | Planned |
 | `apb_csr`          | APB slave interface exposing control/status registers  | Planned | Planned | Planned |
-| `async_apb_bridge` | APB transaction bridge across clock domains            |   Done  |   Done  |   Done  |
+| `async_apb_bridge` | APB transaction bridge across clock domains            | Planned | Planned | Planned |
 
 ### Status Definition
 
