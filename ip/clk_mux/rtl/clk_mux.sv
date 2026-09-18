@@ -56,7 +56,7 @@ always_ff @(posedge i_clk1 or negedge i_reset1) begin
         out_flop1 <= out_sync1;
 end
 
-always_ff @(posedge i_clk1 or negedge i_reset2) begin
+always_ff @(posedge i_clk2 or negedge i_reset2) begin
     if (!i_reset2)
         out_flop2 <= 0;
     else
