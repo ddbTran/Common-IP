@@ -66,6 +66,20 @@ echo "Running Yosys synthesis"
 echo "============================================================"
 yosys -V | tee -a "$SYN_SYN_LOG"
 
+echo ""
+echo "Synthesis configuration:"
+echo "  SYN_TOP      = $SYN_TOP"
+echo "  IP_HOME      = $IP_HOME"
+echo "  SYN_SCRIPT   = $SYN_SCRIPT"
+echo "  SYN_FILELIST = $SYN_FILELIST"
+echo "  SYN_SDC      = $SYN_SDC"
+echo ""
+
+if [[ ! -f "$SYN_SCRIPT" ]]; then
+    echo "ERROR: Synthesis script not found: $SYN_SCRIPT" >&2
+    exit 1
+fi
+
 yosys -l "$SYN_SYN_LOG" -c "$SYN_SCRIPT"
 
 if [[ ! -s "$SYN_OUT_NETLIST" ]]; then
