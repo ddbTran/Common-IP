@@ -45,8 +45,8 @@ rm -f "${TARGET_DIR}/syn/run_syn.tcl"
 rm -f "${TARGET_DIR}/syn/run_sta.tcl"
 rm -f "${TARGET_DIR}/syn/run_syn_common.sh"
 
-ln -s "${TEMPLATE_DIR}/syn/run_syn.tcl" "${TARGET_DIR}/syn/run_syn.tcl"
-ln -s "${TEMPLATE_DIR}/syn/run_sta.tcl" "${TARGET_DIR}/syn/run_sta.tcl"
+ln -s "../../template/syn/run_syn.tcl" "${TARGET_DIR}/syn/run_syn.tcl"
+ln -s "../../template/syn/run_sta.tcl" "${TARGET_DIR}/syn/run_sta.tcl"
 
 # -------------------------------------------------------------------------
 # Step 1: Generate RTL file (<module_name>.sv) based on Coding Style
