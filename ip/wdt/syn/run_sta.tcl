@@ -1,0 +1,1 @@
+/home/tandat_tran/work/hardware/common_ips/ip/template/syn/run_sta.tcl
