@@ -28,7 +28,7 @@ The Watchdog Timer (WDT) monitors system operation using a configurable timer. T
 
 ### 2.1 Block Diagram
 
-<Diagram>
+![Watchdog Timer Block Diagram](docs/wdt_diagram.png)
 
 ### 2.2 IO Ports
 
@@ -148,6 +148,7 @@ The watchdog must be configured before enabling it. Configuration changes during
 | `tc16_clock_ratio`                   | PASS   | Verifies operation with different source and reference clock rates. |
 | `tc17_reset_during_normal_operation` | PASS   | Verifies reset during normal watchdog operation.                    |
 | `tc18_reset_during_timeout`          | PASS   | Verifies reset behavior while timeout is active.                    |
+| `tc19_random_test`                   | PASS   | Verifies IP under random stress test with different clock ratio.    |
 
 ## 6. Synthesis
 
@@ -155,8 +156,8 @@ The watchdog must be configured before enabling it. Configuration changes during
 | ---------- | ----------------------------------------- |
 | Library    | Nangate45                                 |
 | Frequency  | `clk_src_i`: 100 MHz; `clk_ref_i`: 10 MHz |
-| Cell Count | 167                                       |
-| Cell Area  | 353.78                                    |
+| Cell Count | 165                                       |
+| Cell Area  | 355.90                                    |
 | WNS        | 0.00                                      |
 
 ## 7. Notes

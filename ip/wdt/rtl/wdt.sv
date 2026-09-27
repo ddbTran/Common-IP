@@ -29,6 +29,17 @@ module wdt #(
     input  logic                   rst_ref_ni
 );
 
+    // --- Parameter checks ---
+    generate
+        if (TIMER_WIDTH < 1) begin : gen_timer_width_assert
+            initial $error("TIMER_WIDTH must be >= 1");
+        end
+
+        if (KICK_WIDTH < 1) begin : gen_kick_width_assert
+            initial $error("KICK_WIDTH must be >= 1");
+        end
+    endgenerate
+
     // --- Internal signals ---
     logic timer_enable_sync;
     logic timer_enable_sync_delay;
@@ -39,24 +50,30 @@ module wdt #(
     logic [TIMER_WIDTH-1:0] timer_q;
     logic [TIMER_WIDTH-1:0] timer_d;
     logic timeout_cond;
-    logic timeout_ref;
+    logic timeout_ref_q;
+    logic timeout_ref_d;
     logic timeout_src;
 
     // --- Combinational logic ---
+    assign timer_enable_re = timer_enable_sync && !timer_enable_sync_delay;
+    assign timeout_cond    = (timer_q == timer_threshold_i);
+
     always_comb begin
-        timer_enable_re = timer_enable_sync && !timer_enable_sync_delay;
-        timeout_cond    = (timer_q == timer_threshold_i);
-        timer_d         = timer_q;
         if (timer_enable_re) begin
-            timer_d = timer_default_i;       // reload when start
+            timer_d       = timer_default_i;       // reload when start
+            timeout_ref_d = 1'b0;
         end else if (!timer_enable_sync) begin
-            timer_d = timer_q;               // stop switching for power
+            timer_d       = timer_q;               // stop switching for power
+            timeout_ref_d =  1'b0;
         end else if (timeout_cond) begin
-            timer_d = timer_q;               // trigger level interrupt until being clear
+            timer_d       = timer_q;               // trigger level interrupt until being clear
+            timeout_ref_d = 1'b1;
         end else if (!kick_capture_sync) begin
-            timer_d = timer_q + 1;
+            timer_d = timer_q + 1'b1;
+            timeout_ref_d = 1'b0;  
         end else begin
             timer_d = timer_default_i;
+            timeout_ref_d = 1'b0;
         end
     end
 
@@ -72,6 +89,9 @@ module wdt #(
         .data_o(timer_enable_sync)
     );
 
+    // The synchronizer is used as a asynchronous pulse catcher by connecting
+    // asynchronous set to kick_event. This implementation create a pulse at reference
+    // domain while avoiding removal-time violation with asynchronous deassertion.
     synchronizer #(
         .DEPTH(2),
         .RST_VALUE(1'b1)
@@ -82,6 +102,8 @@ module wdt #(
         .data_o(kick_capture)
     );
 
+    // Synchronize the capture pulse to avoid recorvery-time violations caused
+    // by asynchronous assertion of the pulse
     synchronizer #(
         .DEPTH(2),
         .RST_VALUE(1'b0)
@@ -96,15 +118,11 @@ module wdt #(
         if (!rst_ref_ni) begin
             timer_q                 <= '0;
             timer_enable_sync_delay <= 1'b0;
-            timeout_ref             <= 1'b0;
+            timeout_ref_q           <= 1'b0;
         end else begin
             timer_q                 <= timer_d;
             timer_enable_sync_delay <= timer_enable_sync;
-            if (!timer_enable_sync_delay) begin
-                timeout_ref <= 1'b0;
-            end else if (timeout_cond) begin
-                timeout_ref <= 1'b1;
-            end
+            timeout_ref_q           <= timeout_ref_d;
         end
     end
 
@@ -115,7 +133,7 @@ module wdt #(
     ) u_timeout_sync (
         .clk_i(clk_src_i),
         .rst_ni(rst_src_ni),
-        .data_i(timeout_ref),
+        .data_i(timeout_ref_q),
         .data_o(timeout_src)
     );
 

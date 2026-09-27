@@ -120,6 +120,7 @@ module tb_wdt;
     TC16_CLOCK_RATIO,
     TC17_RESET_DURING_NORMAL_OPERATION,
     TC18_RESET_DURING_TIMEOUT,
+    TC19_RANDOM_TEST,
     TC_DONE
   } tc_id_e;
 
@@ -384,6 +385,7 @@ module tb_wdt;
     tc16_clock_ratio();
     tc17_reset_during_normal_operation();
     tc18_reset_during_timeout();
+    tc19_random_test();
 
     tc_id_active = TC_DONE;
     final_report();
@@ -880,6 +882,88 @@ module tb_wdt;
 
     disable_wdt();
     wait_ref_cycles(SYNC_LATENCY_REF);
+    end_tc();
+  endtask
+
+  //----------------------------------------------------------
+  // TC19 — Random Test (broader clock-ratio coverage)
+  //----------------------------------------------------------
+  // TC16 exercises a hanul of hand-picked src/ref clock-period pairs.
+  // TC19 complements that with a randomized sweep across many more
+  // src/ref period combinations (integer and non-integer ratios, src
+  // faster/slower/equal to ref) crossed with randomized kick-or-not
+  // behavior, to shake out corner cases that a fixed set of ratios could
+  // miss. The seed is printed so a failing run can be reproduced with
+  // +SEED=<n>.
+  task automatic tc19_random_test();
+    localparam int NUM_ITER = 100;
+    int  seed;
+    int  src_ns, ref_ns;
+    int  half_interval;
+    int  kick_choice;
+    bit  got_timeout;
+    start_tc("TC19_Random_Test");
+
+    if (!$value$plusargs("SEED=%d", seed)) seed = 32'hC0FFEE;
+    $display("[%0t] TC19: random seed = %0d (rerun with +SEED=%0d to reproduce)",
+              $time, seed, seed);
+    void'($urandom(seed));
+
+    for (int iter = 0; iter < NUM_ITER; iter++) begin
+      // Randomize src/ref clock periods (in ns) over a wide range so both
+      // integer ratios (e.g. 2x, 4x) and non-integer ratios get exercised,
+      // in both src-faster-than-ref and ref-faster-than-src directions.
+      src_ns = $urandom_range(2, 40);
+      ref_ns = $urandom_range(2, 150);
+      
+      SRC_CLK_PERIOD = time'(src_ns);
+      REF_CLK_PERIOD = time'(ref_ns);
+
+      pulse_reset_both();
+      configure_wdt(DEFAULT_VAL, THRESHOLD_VAL, KEY_VAL);
+      enable_wdt();
+
+      half_interval = (INTERVAL >= 2) ? (INTERVAL / 2) : 1;
+      kick_choice   = $urandom_range(0, 1);
+
+      if (kick_choice == 0) begin
+        // Kick partway through the interval: must NOT time out early, but
+        // must still time out later once kicking stops.
+        wait_ref_cycles($urandom_range(1, half_interval));
+        apply_kick_pulse(KEY_VAL, $urandom_range(1, 4));
+        wait_ref_cycles(SYNC_LATENCY_REF);
+        wait_for_timeout(half_interval, got_timeout);
+        check(!got_timeout,
+              $sformatf("TC19 iter %0d (src=%0dns ref=%0dns): kick reload prevents early timeout",
+                         iter, src_ns, ref_ns));
+
+        kick_i = KEY_VAL ^ 8'hFF;
+        wait_for_timeout(INTERVAL + SYNC_LATENCY_REF + 20, got_timeout);
+        check(got_timeout,
+              $sformatf("TC19 iter %0d (src=%0dns ref=%0dns): timeout eventually occurs after reload",
+                         iter, src_ns, ref_ns));
+      end else begin
+        // No kick: timer must run to completion within one full interval.
+        kick_i = KEY_VAL ^ 8'hFF;
+        wait_for_timeout(INTERVAL + SYNC_LATENCY_REF + 20, got_timeout);
+        check(got_timeout,
+              $sformatf("TC19 iter %0d (src=%0dns ref=%0dns): timeout occurs with no kick",
+                         iter, src_ns, ref_ns));
+      end
+
+      disable_wdt();
+      wait_ref_cycles(SYNC_LATENCY_REF + 1);
+      wait_src_cycles(SYNC_LATENCY_SRC);
+      #0.1;
+      check(!timeout_irq_o,
+            $sformatf("TC19 iter %0d (src=%0dns ref=%0dns): timeout cleared after disable",
+                       iter, src_ns, ref_ns));
+    end
+
+    // Restore default clock periods for cleanliness (TC19 is currently the
+    // last test, but keep this in case tests are appended after it later).
+    SRC_CLK_PERIOD = 5ns;
+    REF_CLK_PERIOD = 100ns;
     end_tc();
   endtask
 
