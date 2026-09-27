@@ -68,6 +68,7 @@ The module contains distinct sequential blocks and synchronizers driven by their
 ### 4.2 Operation Guide
 
 To switch clocks during runtime, toggle the `i_sel` pin. The IP automatically handles the safe de-assertion of the current clock, waits for the logic to clear through the synchronizers, and seamlessly asserts the new clock. Users do not need to pause or gate the clocks externally before toggling `i_sel`.
+The `i_sel` signal must not request multiple clock selections simultaneously. This IP guarantees glitch-free behavior when switching between clock sources, but does not support simultaneous changes to multiple selection inputs.
 
 ## 5. Verification
 
@@ -93,4 +94,4 @@ To switch clocks during runtime, toggle the `i_sel` pin. The IP automatically ha
 When running Synthesis or Static Timing Analysis (STA) on this IP, you must strictly define the clock groups to prevent false violations caused by the cross-coupled feedback paths.
 1. **Input Clocks:** `i_clk1` and `i_clk2` must be defined as `-asynchronous` clock groups.
 2. **Output Clocks:** Two generated clocks should be created on the `o_clk` port (e.g., `o_clk1` and `o_clk2`). These must be defined as `-physically_exclusive` clock groups since they cannot physically exist on the wire simultaneously.
-3. **Selection Pin:** Ensure `i_sel` is properly constrained with input delays relative to **both** input clocks, or set as a false path if toggled statically by a configuration register.
+3. **Selection Pin:** Ensure `i_sel` is properly constrained with input delays relative to **both** input clocks, or set as a false path if toggled statically by a configuration register. 

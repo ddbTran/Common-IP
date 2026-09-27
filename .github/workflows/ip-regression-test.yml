@@ -22,6 +22,24 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Debug checkout
+        run: |
+          echo "GITHUB_SHA=${{ github.sha }}"
+          echo "HEAD=$(git rev-parse HEAD)"
+          echo "Branch=$(git branch --show-current)"
+
+          echo ""
+          echo "Git tree:"
+          git ls-tree -r --name-only HEAD -- ip/wdt/syn/
+
+          echo ""
+          echo "Filesystem:"
+          ls -la ip/wdt/syn/
+
+          echo ""
+          echo "Check run_syn.tcl:"
+          test -f ip/wdt/syn/run_syn.tcl
+
       - name: Build toolchain
         run: make build
 
@@ -58,6 +76,25 @@ jobs:
 
             (
               cd "ip/$ip/syn"
+
+              echo ""
+              echo "------------------------------------------------------------"
+              echo "Synthesis debug"
+              echo "------------------------------------------------------------"
+              echo "PWD        : $PWD"
+              echo "IP         : $ip"
+              echo "IP_HOME    : ${IP_HOME:-}"
+              echo "WDT_HOME   : ${WDT_HOME:-}"
+
+              echo ""
+              echo "Synthesis files:"
+              ls -la
+
+              echo ""
+              echo "Checking run_syn.tcl:"
+              test -f run_syn.tcl
+              echo "run_syn.tcl exists"
+
               source run_syn.sh
             )
 

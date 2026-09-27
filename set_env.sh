@@ -23,6 +23,8 @@ export CLK_DIV_HOME="${IP_HOME}/clk_div"
 export CLK_MUX_HOME="${IP_HOME}/clk_mux"
 export PULSE_SYNC_HOME="${IP_HOME}/pulse_sync"
 export RESET_CONTROL_HOME="${IP_HOME}/reset_control"
+export WDT_HOME="${IP_HOME}/wdt"
+export PULSE_STRETCH_HOME="${IP_HOME}/pulse_stretch"
 
 # ------------------------------------------------------------
 # Tool
