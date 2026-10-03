@@ -59,7 +59,7 @@ The following table defines the target IP set and its current implementation sta
 | `rr_arbiter`       | Round-robin arbiter                                    | Planned | Planned | Planned |
 | `wdt`              | Watchdog timer with three clock domains                |   Done  |   Done  |   Done  |
 | `apb_csr`          | APB slave interface exposing control/status registers  | Planned | Planned | Planned |
-| `async_apb_bridge` | APB transaction bridge across clock domains            | Planned | Planned | Planned |
+| `async_apb_bridge` | APB transaction bridge across clock domains            |   Done  |   Done  |   Done  |
 
 ### Status Definition
 
