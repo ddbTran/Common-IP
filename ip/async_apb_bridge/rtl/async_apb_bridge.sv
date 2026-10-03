@@ -1,7 +1,7 @@
 // ============================================================================
 // Module      : async_apb_bridge
-// Description :
-// Author      :
+// Description : Asynchronous APB Bridge
+// Author      : Dat Tran <dat.trantan.business@gmail.com>
 // ============================================================================
 `timescale 1ns/1ps
 
@@ -42,6 +42,17 @@ module async_apb_bridge #(
     output logic                     s_pslverr_o
 );
 
+    // Parameter checks
+    generate
+        if (DATA_WIDTH < 8 || DATA_WIDTH % 8 != 0) begin : gen_data_width_assert
+            initial $error("DATA_WIDTH must be byte-aligned and >= 8");
+        end
+
+        if (ADDR_WIDTH < 1) begin : gen_addr_width_assert
+            initial $error("ADDR_WIDTH must be >= 1");
+        end
+    endgenerate
+
     // --- Internal signals ---
     // CDC request channel
     logic                     cdc_req_w;
@@ -56,11 +67,6 @@ module async_apb_bridge #(
     logic [DATA_WIDTH-1:0]    cdc_prdata_w;
     logic                     cdc_pslverr_w;
 
-    // --- Combinational logic ---
-
-    // --- Sequential logic ---
-
-    // --- Memory / datapath ---
     apb_mstr_if #(
         .ADDR_WIDTH(ADDR_WIDTH),
         .DATA_WIDTH(DATA_WIDTH)

@@ -108,13 +108,13 @@ module apb_slv_if #(
             ST_REQ: begin
                 if (s_ack_sync) begin
                     s_req_d     = 1'b0;
-                    s_prdata_d  = s_prdata_i;
-                    s_pslverr_d = s_pslverr_i;
                 end
             end
             ST_ACK: begin
                 if (!s_ack_sync) begin
                     s_pready_d  = 1'b1;
+                    s_prdata_d  = s_prdata_i;
+                    s_pslverr_d = s_pslverr_i;
                 end
             end
             default: begin end

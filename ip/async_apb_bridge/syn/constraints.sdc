@@ -9,7 +9,7 @@
 #------------------------------------------------------------------------------
 
 # Target operating frequency [MHz]
-set TARGET_FREQUENCY 100
+set CLOCK_FREQUENCY 100
 
 # Fraction of the target clock period available to the IP implementation.
 set CLOCK_DERATE 1.0
@@ -18,7 +18,7 @@ set CLOCK_DERATE 1.0
 set IO_DERATE 0.6
 
 # Clock period [ns]
-set CLOCK_PERIOD [expr {1000.0 / $TARGET_FREQUENCY * $CLOCK_DERATE}]
+set CLOCK_PERIOD [expr {1000.0 / $CLOCK_FREQUENCY * $CLOCK_DERATE}]
 
 # I/O delay [ns]
 set IO_DELAY [expr {$CLOCK_PERIOD * $IO_DERATE}]
@@ -29,11 +29,17 @@ set IO_DELAY [expr {$CLOCK_PERIOD * $IO_DERATE}]
 #------------------------------------------------------------------------------
 
 create_clock \
-    -name clk \
+    -name clk_s \
     -period $CLOCK_PERIOD \
-    [get_ports clk_i]
+    [get_ports clk_s_i]
 
-set_clock_uncertainty 0.05 [get_clocks clk]
+create_clock \
+    -name clk_m \
+    -period $CLOCK_PERIOD \
+    [get_ports clk_m_i]
+
+set_clock_uncertainty 0.05 [get_clocks clk_s]
+set_clock_uncertainty 0.05 [get_clocks clk_m]
 
 # Optional:
 # set_clock_latency <value> [get_clocks clk]
@@ -51,8 +57,10 @@ set_clock_uncertainty 0.05 [get_clocks clk]
 # 3. Ideal Network
 #------------------------------------------------------------------------------
 
-set_ideal_network [get_ports clk_i]
-set_ideal_network [get_ports rst_ni]
+set_ideal_network [get_ports clk_s_i]
+set_ideal_network [get_ports clk_m_i]
+set_ideal_network [get_ports rst_s_ni]
+set_ideal_network [get_ports rst_m_ni]
 
 
 #------------------------------------------------------------------------------
@@ -60,10 +68,11 @@ set_ideal_network [get_ports rst_ni]
 #------------------------------------------------------------------------------
 
 # Optional:
-# set_clock_groups \
-#     -asynchronous \
-#     -group [get_clocks clk] \
-#     -group [get_clocks <other_clk>]
+set_clock_groups \
+    -asynchronous \
+    -allow_paths  \
+    -group [get_clocks clk_s] \
+    -group [get_clocks clk_m]
 
 
 #------------------------------------------------------------------------------
@@ -72,13 +81,23 @@ set_ideal_network [get_ports rst_ni]
 
 set_input_delay \
     $IO_DELAY \
-    -clock [get_clocks clk] \
-    [all_inputs -no_clocks ]
+    -clock [get_clocks clk_s] \
+    [get_ports s_*_i]
+
+set_input_delay \
+    $IO_DELAY \
+    -clock [get_clocks clk_m] \
+    [get_ports m_*_i]
 
 set_output_delay \
     $IO_DELAY \
-    -clock [get_clocks clk] \
-    [all_outputs]
+    -clock [get_clocks clk_s] \
+    [get_ports s_*_o]
+
+set_output_delay \
+    $IO_DELAY \
+    -clock [get_clocks clk_m] \
+    [get_ports m_*_o]
 
 
 #------------------------------------------------------------------------------
@@ -86,10 +105,13 @@ set_output_delay \
 #------------------------------------------------------------------------------
 
 # Optional:
-# set_max_delay <value> \
-#     -from [get_ports <input_ports>] \
-#     -to   [get_ports <output_ports>]
+set_max_delay $CLOCK_PERIOD \
+    -from [get_pins [all_registers -clock clk_s -clock_pins]] \
+    -to [get_pins [all_registers -clock clk_m -data_pins]]
 
+set_max_delay $CLOCK_PERIOD \
+    -from [get_pins [all_registers -clock clk_m -clock_pins]] \
+    -to [get_pins [all_registers -clock clk_s -data_pins]]
 
 #------------------------------------------------------------------------------
 # 7. False Path
