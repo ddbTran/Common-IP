@@ -24,7 +24,7 @@ verilator \
     --binary \
     --timing \
     --trace-fst \
-    --no-sched-zero-delay \
+    --sched-zero-delay \
     --top-module "${TOP_MODULE}" \
     -f "${IP_HOME}/sim/filelist_sim.f" \
     -Mdir "${IP_HOME}/sim/out/obj_dir" \
