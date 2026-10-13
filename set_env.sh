@@ -25,6 +25,7 @@ export PULSE_SYNC_HOME="${IP_HOME}/pulse_sync"
 export RESET_CONTROL_HOME="${IP_HOME}/reset_control"
 export WDT_HOME="${IP_HOME}/wdt"
 export ASYNC_APB_BRIDGE_HOME="${IP_HOME}/async_apb_bridge"
+export RR_ARBITER_HOME="${IP_HOME}/rr_arbiter"
 
 # ------------------------------------------------------------
 # Tool
