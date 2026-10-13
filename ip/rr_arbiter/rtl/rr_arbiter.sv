@@ -9,7 +9,7 @@
 
 module rr_arbiter #(
     // --- Parameters ---
-    parameter int unsigned NUM_REQ = 4
+    parameter int unsigned NUM_REQ = 16
 ) (
     // --- Ports ---
     input  logic               clk_i,

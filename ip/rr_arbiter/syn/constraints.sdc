@@ -15,7 +15,7 @@ set TARGET_FREQUENCY 100
 set CLOCK_DERATE 1.0
 
 # Fraction of the clock period allocated to I/O timing.
-set IO_DERATE 0.6
+set IO_DERATE 0.3
 
 # Clock period [ns]
 set CLOCK_PERIOD [expr {1000.0 / $TARGET_FREQUENCY * $CLOCK_DERATE}]
