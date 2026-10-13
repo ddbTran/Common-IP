@@ -40,7 +40,7 @@ The `rr_arbiter` grants a shared resource to one of `NUM_REQ` requesters each cy
 
 | Parameter | Default | Description |
 |---|---:|---|
-| `NUM_REQ` | 16 | Number of requesters (verified for 2, 4, 16 and 64). |
+| `NUM_REQ` | 16 | Number of requesters (verified for 2, 4, and 16). |
 
 ## 3. Functional Description
 
