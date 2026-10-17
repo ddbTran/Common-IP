@@ -8,27 +8,27 @@
 
 module synchronizer #(
     // Configurable Parameters
+    parameter int unsigned WIDTH     = 1,
     parameter int unsigned DEPTH     = 2,
     parameter logic        RST_VALUE = 1'b0,
 
     // Derived Parameters
     localparam int unsigned SYNC_DEPTH = (DEPTH < 2) ? 2 : DEPTH
 ) (
-    input  logic clk_i,
-    input  logic rst_ni,
-    input  logic data_i,
-    output logic data_o
+    input  logic             clk_i,
+    input  logic             rst_ni,
+    input  logic [WIDTH-1:0] data_i,
+    output logic [WIDTH-1:0] data_o
 );
 
-    logic [SYNC_DEPTH-1:0] sync_q;
+    logic [WIDTH-1:0] sync_q [SYNC_DEPTH];
 
     always_ff @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
-            sync_q <= {SYNC_DEPTH{RST_VALUE}};
-        end
-        else begin
+            for (int unsigned i = 0; i < SYNC_DEPTH; i++)
+                sync_q[i] <= {WIDTH{RST_VALUE}};
+        end else begin
             sync_q[0] <= data_i;
-
             for (int unsigned i = 1; i < SYNC_DEPTH; i++)
                 sync_q[i] <= sync_q[i-1];
         end
