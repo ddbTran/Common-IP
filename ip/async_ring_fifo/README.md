@@ -26,7 +26,7 @@ The asynchronous ring FIFO buffers data between a producer and a consumer operat
 
 ### 2.1 Block Diagram
 
-To be added.
+![Async_Ring_FIFO Block Diagram](docs/async_ring_fifo_diagram.png)
 
 ### 2.2 IO Ports
 
